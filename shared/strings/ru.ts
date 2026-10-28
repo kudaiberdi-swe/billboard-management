@@ -189,4 +189,9 @@ export const ru = {
     slotsUsed: "Занято {used} из 12",
     cycleTitle: "Минутный цикл",
   },
+  simulate: {
+    // f10-simulate-shows; button from SoW 4.10, done is team copy
+    button: "Смоделировать показы",
+    done: "Показы смоделированы: {from} – {to}",
+  },
 };

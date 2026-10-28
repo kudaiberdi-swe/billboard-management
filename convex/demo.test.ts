@@ -13,6 +13,7 @@ import { CITIES, PLACEHOLDER_KEYS, SLOTS_PER_CYCLE } from "./lib/config";
 import { hourSlots, isOn, occupancy, plannedShowsForDay, usedSlots } from "./lib/slots";
 import { campaignStatus, notifications } from "./lib/status";
 import { addDays, kzNow } from "./lib/time";
+import { RESET_LOG_BATCH } from "./demo";
 import { seedClock, seedData } from "./seed";
 
 const modules = import.meta.glob("./**/*.*s");
@@ -322,7 +323,7 @@ describe("demo-access", () => {
 
   test("[base-contract] clear sessions is not public", async () => {
     const demo = await import("./demo");
-    for (const fn of [demo.clearSessions, demo.seed]) {
+    for (const fn of [demo.clearSessions, demo.seed, demo.purgeShowLog]) {
       expect((fn as unknown as { isInternal: boolean }).isInternal).toBe(true);
       expect((fn as unknown as { isPublic?: boolean }).isPublic).toBeFalsy();
     }
@@ -400,6 +401,30 @@ describe("reset", () => {
     }
     expect(await t.run((ctx) => ctx.db.get(campaignId))).not.toBeNull();
     expect(await tableCounts(t)).toEqual(counts);
+  });
+
+  test("[wave-1 follow-up] reset deletes a large show log in bounded pages", async () => {
+    vi.useFakeTimers();
+    const t = setup();
+    const { campaignId } = await withUserCampaign(t);
+    const extra = RESET_LOG_BATCH + 500;
+    await t.run(async (ctx) => {
+      const screenId = (await ctx.db.query("screens").first())!._id;
+      for (let i = 0; i < extra; i += 1) await ctx.db.insert("showLog", { campaignId, screenId, date: "2026-11-01", shows: 1 });
+    });
+    const seedRows = (await load(t)).showLog.length - extra;
+    await t.mutation(api.demo.reset, { sessionId: await signedIn(t) });
+    const oldLeft = async () => {
+      const now = await load(t);
+      const ids = new Set(now.campaigns.map((c) => c._id));
+      return now.showLog.filter((r) => !ids.has(r.campaignId)).length;
+    };
+    // One transaction deleted at most RESET_LOG_BATCH rows; the rest waits for purgeShowLog.
+    expect(await oldLeft()).toBe(extra + seedRows - RESET_LOG_BATCH);
+    await t.finishAllScheduledFunctions(vi.runAllTimers);
+    expect(await oldLeft()).toBe(0);
+    const state = await load(t);
+    for (const check of Object.values(SEED_CHECKS)) check(state, kzNow(Date.now()).date);
   });
 
   test("[base-contract] data is shared between sessions", async () => {
