@@ -15,9 +15,9 @@ Daily development needs no running backend: tests use convex-test (in memory). D
 | Service | Image (pinned) | Container port | Laptop host port |
 | --- | --- | --- | --- |
 | `postgres` | `postgres:17.11-alpine`, volume `pgdata` | 5432 | `127.0.0.1:5442` |
-| `backend` | `ghcr.io/get-convex/convex-backend:<tag>`, volume `convexdata` | 3210 (API, WS), 3211 (HTTP actions) | `127.0.0.1:3410`, `127.0.0.1:3411` |
+| `backend` | `ghcr.io/convex/convex-backend:<tag>`, volume `convexdata` | 3210 (API, WS), 3211 (HTTP actions) | `127.0.0.1:3410`, `127.0.0.1:3411` |
 | `loopback` | `alpine/socat:<tag>` | shares the backend's network namespace | none |
-| `dashboard` | `ghcr.io/get-convex/convex-dashboard:<tag>` | 6791 | `127.0.0.1:6792` |
+| `dashboard` | `ghcr.io/convex/convex-dashboard:<tag>` | 6791 | `127.0.0.1:6792` |
 | `caddy` (profile `https`, off by default) | `caddy:<tag>` | 80, 443 | public VM only |
 
 All host ports bind to `127.0.0.1` (`BIND_ADDRESS`). The laptop ports avoid 3210-3213, which `npx convex dev --local` uses.
@@ -70,7 +70,7 @@ Restore drill: `$DC down -v`, `$DC up -d --wait`, then `pg_restore` into the fre
 ## Upgrading the Convex backend
 
 1. Back up (above).
-2. Set `CONVEX_BACKEND_TAG` and `CONVEX_DASHBOARD_TAG` to the same new release tag (`ghcr.io/get-convex/convex-backend`). Keep the `convex` npm package compatible.
+2. Set `CONVEX_BACKEND_TAG` and `CONVEX_DASHBOARD_TAG` to the same new release tag (`ghcr.io/convex/convex-backend`). Keep the `convex` npm package compatible.
 3. `$DC up -d --wait`, push the code, run the smoke test.
 
 ## Differences from Convex Cloud

@@ -12,8 +12,8 @@
 
 x-convex-image-tags:
   # get-convex/convex-backend release precompiled-2026-10-07-5e677d7
-  backend: &backend-image ghcr.io/get-convex/convex-backend:${CONVEX_BACKEND_TAG:-5e677d76314a1bab5d0f70816e6dda8d5e824794}
-  dashboard: &dashboard-image ghcr.io/get-convex/convex-dashboard:${CONVEX_DASHBOARD_TAG:-5e677d76314a1bab5d0f70816e6dda8d5e824794}
+  backend: &backend-image ghcr.io/convex/convex-backend:${CONVEX_BACKEND_TAG:-5e677d76314a1bab5d0f70816e6dda8d5e824794}
+  dashboard: &dashboard-image ghcr.io/convex/convex-dashboard:${CONVEX_DASHBOARD_TAG:-5e677d76314a1bab5d0f70816e6dda8d5e824794}
 
 services:
   postgres:
