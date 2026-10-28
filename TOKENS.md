@@ -18,7 +18,7 @@ Set with `npx convex env set NAME value`. On production, name the target explici
 
 | Key | What for | Where to get it | Required |
 | --- | --- | --- | --- |
-| `<KEY_NAME>` | <what stops working without it> | <who issues it> | yes / no |
+| `DEMO_PASSWORD` | shared demo password checked by `demo.signIn` (ADR-0003); unset = nobody can sign in | team: generate a long random value, share with the client | yes |
 
 ## Self-hosted stack
 
@@ -54,6 +54,7 @@ Passwords of the demo accounts of the test stack and the stand. Synthetic data o
 
 | Key | What for | Where the value may appear |
 | --- | --- | --- |
+| `E2E_DEMO_PASSWORD` | the shared demo password (same value as `DEMO_PASSWORD`) typed by the e2e smoke test into the password screen | `.env.local` only |
 | `DEMO_<ROLE>_PASSWORD` | password of the demo account of one role; add one row per role, for example DEMO_ADMIN_PASSWORD. Prefer `[A-Za-z0-9]` only; in `.env` write a value with `#`, quotes or edge spaces in single quotes | `docs/ACCESS.md` (Test section; the stand uses the same seed accounts) and the Access section of the Linear issue description; never in a Linear comment; nowhere else |
 
 ## Not issued yet

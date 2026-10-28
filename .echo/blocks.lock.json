@@ -1,0 +1,37 @@
+{
+  "blocks": {
+    "strings": {
+      "files": {
+        "shared/strings/generated.ts": {
+          "kind": "gen",
+          "sha256": "e29b1eaff46b3172e894f9bbe795315e763eb9581d1e2991c313c870116ee916"
+        },
+        "shared/strings/index.ts": {
+          "kind": "copy",
+          "sha256": "382307f35b1bb70e4deb32b2687361122c1b4000c307e53c20e309478478a264"
+        },
+        "shared/strings/locales.ts": {
+          "kind": "gen",
+          "sha256": "1dd1567bffb0c403ac818fe5db2a3c7e9bf88b69d3a4c7eba166ac1cd254e356"
+        },
+        "shared/strings/ru.ts": {
+          "seed": true
+        },
+        "shared/strings/strings.test.ts": {
+          "kind": "copy",
+          "sha256": "42a17f1e8677ace54ab847df1b6b298b686450a2f082e771a2d770b1f83ea2f3"
+        },
+        "shared/strings/types.ts": {
+          "kind": "copy",
+          "sha256": "d0ebf3189a4f35f56e0b780594836fec228a9748be348e3ab692b1cfa8119844"
+        }
+      },
+      "version": "1.0.0"
+    }
+  },
+  "contract": {
+    "path": "openspec/changes/base-contract/design.md",
+    "sha256": "5ae23b313fddf0bc651b7d06c94f94ee0f79294b07d867078e04539b0362bd48"
+  },
+  "lockVersion": 1
+}
