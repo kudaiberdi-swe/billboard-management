@@ -44,7 +44,16 @@ function result({ screenId }: { screenId: string }) {
           vehicles: flags.hasVehicleMetric ? 6789 : null,
           lookShare: 37.5,
           byHour,
-          profile: { age: { "18-24": 18, "25-34": 31, "35-44": 24, "45-54": 15, "55+": 12 }, gender: { male: 52, female: 48 } },
+          profile: {
+            age: [
+              { group: "18-24", share: 18 },
+              { group: "25-34", share: 31 },
+              { group: "35-44", share: 24 },
+              { group: "45-54", share: 15 },
+              { group: "55+", share: 12 },
+            ],
+            gender: { male: 52, female: 48 },
+          },
         }
       : null,
   };

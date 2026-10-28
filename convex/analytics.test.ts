@@ -6,6 +6,7 @@ import { convexTest } from "convex-test";
 import { ConvexError } from "convex/values";
 import { expect, test } from "vitest";
 import { api } from "./_generated/api";
+import { screenPeriod } from "./analytics";
 import type { Doc, Id } from "./_generated/dataModel";
 import schema from "./schema";
 import { audienceDay, audienceProfile } from "./lib/analytics";
@@ -141,9 +142,11 @@ test("[f08-audience-analytics] screen without a camera", async () => {
 test("[f08-audience-analytics] age groups and gender", async () => {
   const { t, ids, doc } = await setup();
   const { profile } = (await period(t, ids[0])).audience!;
-  expect(profile).toEqual(audienceProfile(await doc(ids[0])));
-  expect(Object.keys(profile.age)).toEqual(["18-24", "25-34", "35-44", "45-54", "55+"]);
-  expect(Object.values(profile.age).reduce((a, b) => a + b, 0)).toBe(100);
+  const generated = audienceProfile(await doc(ids[0]))!;
+  expect(profile.gender).toEqual(generated.gender);
+  expect(profile.age).toEqual(Object.entries(generated.age).map(([group, share]) => ({ group, share })));
+  expect(profile.age.map((a) => a.group)).toEqual(["18-24", "25-34", "35-44", "45-54", "55+"]);
+  expect(profile.age.reduce((s, a) => s + a.share, 0)).toBe(100);
   expect(profile.gender.male + profile.gender.female).toBe(100);
 });
 
@@ -167,9 +170,23 @@ test("[f08-audience-analytics] no personal data", async () => {
     expect(Object.keys(r.screen).sort()).toEqual(["_id", "city", "code", "hasCamera", "hasVehicleMetric", "name"]);
     if (r.audience) {
       const { byHour, profile, ...totals } = r.audience;
-      for (const n of [...Object.values(totals), ...Object.values(profile.age), ...Object.values(profile.gender)])
+      for (const n of [...Object.values(totals), ...profile.age.map((a) => a.share), ...Object.values(profile.gender)])
         expect(typeof n).toBe("number");
       for (const p of byHour) expect(Object.keys(p).sort()).toEqual(["hour", "looks", "people"]);
     }
   }
+});
+
+// Convex deploy rejects object validator keys that are not identifiers (e.g. "18-24"); convex-test does not.
+test("returns validator of analytics.screenPeriod has identifier keys only", () => {
+  const keys: string[] = [];
+  const walk = (node: unknown): void => {
+    if (!node || typeof node !== "object") return;
+    const n = node as { type?: unknown; value?: unknown };
+    if (n.type === "object" && n.value && typeof n.value === "object") keys.push(...Object.keys(n.value));
+    Object.values(node).forEach(walk);
+  };
+  walk(JSON.parse((screenPeriod as unknown as { exportReturns: () => string }).exportReturns()));
+  expect(keys).toContain("group");
+  for (const k of keys) expect(k).toMatch(/^[A-Za-z_][A-Za-z0-9_]*$/);
 });

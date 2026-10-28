@@ -114,16 +114,16 @@ export function HourChart({ byHour }: { byHour: Audience["byHour"] }) {
   );
 }
 
-const AGE: { key: keyof Audience["profile"]["age"]; label: StringsKey }[] = [
-  { key: "18-24", label: "audience.age18_24" },
-  { key: "25-34", label: "audience.age25_34" },
-  { key: "35-44", label: "audience.age35_44" },
-  { key: "45-54", label: "audience.age45_54" },
-  { key: "55+", label: "audience.age55" },
-];
+const AGE: Record<string, StringsKey> = {
+  "18-24": "audience.age18_24",
+  "25-34": "audience.age25_34",
+  "35-44": "audience.age35_44",
+  "45-54": "audience.age45_54",
+  "55+": "audience.age55",
+};
 
 export function AgeBlock({ age }: { age: Audience["profile"]["age"] }) {
-  return <Shares title={t("ru", "audience.age")} rows={AGE.map((a) => ({ label: t("ru", a.label), percent: age[a.key] }))} />;
+  return <Shares title={t("ru", "audience.age")} rows={age.map((a) => ({ label: t("ru", AGE[a.group]), percent: a.share }))} />;
 }
 
 export function GenderBlock({ gender }: { gender: Audience["profile"]["gender"] }) {

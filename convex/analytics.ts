@@ -30,13 +30,8 @@ export const screenPeriod = query({
         lookShare: v.number(),
         byHour: v.array(v.object({ hour: v.number(), people: v.number(), looks: v.number() })),
         profile: v.object({
-          age: v.object({
-            "18-24": v.number(),
-            "25-34": v.number(),
-            "35-44": v.number(),
-            "45-54": v.number(),
-            "55+": v.number(),
-          }),
+          // a list, not an object: Convex validator keys must be identifiers, "18-24" is not
+          age: v.array(v.object({ group: v.string(), share: v.number() })),
           gender: v.object({ male: v.number(), female: v.number() }),
         }),
       }),
@@ -61,8 +56,9 @@ export const screenPeriod = query({
       hasCamera: s.hasCamera,
       hasVehicleMetric: s.hasVehicleMetric,
     };
-    const profile = audienceProfile(s);
-    if (!profile) return { screen, audience: null };
+    const p = audienceProfile(s);
+    if (!p) return { screen, audience: null };
+    const profile = { age: Object.entries(p.age).map(([group, share]) => ({ group, share })), gender: p.gender };
 
     const byHour = Array.from({ length: 24 }, (_, hour) => ({ hour, people: 0, looks: 0 }));
     let people = 0;
