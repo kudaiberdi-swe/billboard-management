@@ -16,9 +16,9 @@ Rule: a change to schema, roles, access, statuses or shared signatures needs a n
 | f06-campaign-create | 1 | 4.6 | hard | echo-sdlc:backend-builder + echo-sdlc:frontend-builder | opus | server-side slot conflict check under concurrent saves plus a rate-limited upload; backend mutation then create form | base-contract | archived | change/f06-campaign-create-ui | .claude/worktrees/agent-ac82153817381adad | adds «Создать кампанию» link and `/campaigns/new` route on f05's list page; shared files, see Wave 1 follow-ups ; tsc ok, vitest 140/140, checks PASS, scenarios 37/37 |
 | f05-campaign-list | 1 | 4.5 | routine | echo-sdlc:routine-builder | opus | read-only queries and list/detail screens over base tables and locked lib math | base-contract | archived | change/f05-campaign-list | .claude/worktrees/agent-aef92f175a95bc3d2 | owns `/campaigns/:id` and `campaigns.get` (G-1) ; tsc ok, vitest 119/119, checks PASS, scenarios 19/19 |
 | f07-schedule | 1 | 4.7 | routine | echo-sdlc:routine-builder | opus | read-only view over the shared hourSlots; no writes, no new rules | base-contract | archived | change/f07-schedule | .claude/worktrees/agent-ab763e91e4ca1ffee |  tsc ok, vitest 118/118, checks PASS, scenarios 15/15 |
-| f08-audience-analytics | 2 | 4.8 | routine | echo-sdlc:routine-builder | opus | one read query over the locked audience generator plus a filtered view with cards and a chart | base-contract | review | change/f08-audience-analytics | .claude/worktrees/agent-ad867f3bfc0611542 | merged into the last wave (script wave 2 had only this change) ; tsc ok, vitest 288/288, checks PASS, scenarios 13/13 |
-| f09-reports | 2 | 4.9 | routine | echo-sdlc:routine-builder | opus | read-only report from locked lib math and the f02 contacts helper plus a print stylesheet | base-contract, f02-dashboard, f05-campaign-list | review | change/f09-reports | .claude/worktrees/agent-a0d7c76950ef8cc76 | needs f02 and f05 merged (wave 1) ; tsc ok, vitest 288/288, checks PASS, scenarios 21/21 |
-| f10-simulate-shows | 2 | 4.10 | routine | echo-sdlc:routine-builder | opus | one mutation reusing the locked show-log helper plus one button on the f05 card | base-contract, f05-campaign-list | review | change/f10-simulate-shows | .claude/worktrees/agent-ab78e5c7ce3b924e9 | also batches `demo.reset` showLog deletes (implementation only, no signature change; 31-day cap is per campaign) ; tsc ok, vitest 282/282, checks PASS, scenarios 13/13; wave-1 follow-ups A/B/C done |
+| f08-audience-analytics | 2 | 4.8 | routine | echo-sdlc:routine-builder | opus | one read query over the locked audience generator plus a filtered view with cards and a chart | base-contract | archived | change/f08-audience-analytics | .claude/worktrees/agent-ad867f3bfc0611542 | merged into the last wave (script wave 2 had only this change) ; tsc ok, vitest 288/288, checks PASS, scenarios 13/13 |
+| f09-reports | 2 | 4.9 | routine | echo-sdlc:routine-builder | opus | read-only report from locked lib math and the f02 contacts helper plus a print stylesheet | base-contract, f02-dashboard, f05-campaign-list | archived | change/f09-reports | .claude/worktrees/agent-a0d7c76950ef8cc76 | needs f02 and f05 merged (wave 1) ; tsc ok, vitest 288/288, checks PASS, scenarios 21/21 |
+| f10-simulate-shows | 2 | 4.10 | routine | echo-sdlc:routine-builder | opus | one mutation reusing the locked show-log helper plus one button on the f05 card | base-contract, f05-campaign-list | archived | change/f10-simulate-shows | .claude/worktrees/agent-ab78e5c7ce3b924e9 | also batches `demo.reset` showLog deletes (implementation only, no signature change; 31-day cap is per campaign) ; tsc ok, vitest 282/282, checks PASS, scenarios 13/13; wave-1 follow-ups A/B/C done |
 
 ## Waves
 
@@ -41,8 +41,14 @@ Merge note: f06 adds the «Создать кампанию» link and the `/camp
 ### Wave 2
 Changes: f08-audience-analytics, f09-reports, f10-simulate-shows
 E2E: none (`mid` on wave ceil(N/2) when N >= 3: the full E2E checkpoint)
-Result: - (wave-review writes PASS or KNOWN-ISSUES (KI-NN), QA: fast|e2e, the date and the wave merge commit)
-Follow-ups: - (`[medium]` and lower review findings)
+Result: PASS (round 2; round 1 failed on deploy: non-identifier validator keys in convex/analytics.ts, fixed 3c1e9d2), QA: fast (smoke 6/6, vitest 329/329, scenarios 47/47), 2026-10-28, merge d096ee9
+Follow-ups:
+- [low] convex/dashboard.ts:67 `summary` scans every showLog row in the period by_date; hits the 32k read limit only after ~9 extra full-network campaigns with 31 simulated days. Fix: read by_campaign per selected campaign with a date range.
+- [low] convex/campaigns.ts:34 `campaigns.list` reads every log row of every campaign (same threshold). Later: per-campaign total (contract change).
+- [low] convex/showLog.ts:14 `simulate` has no rate limit (up to ~6k writes per call). Fix: `simulate` flow in rateLimits.ts after requireActor.
+- [low] convex/campaigns.ts:222 200-campaign cap reports INVALID_INPUT {field:"name"}; misleading form error. Fix: comment or a dedicated code (contract change).
+- [low] SimulateShowsButton.tsx:6 hard-coded date format via routes/campaigns/format; ReportView.tsx:15-18 and analytics/Blocks.tsx re-implement number/date formatting. Fix: one shared token-based src/format.ts.
+- [nit] stale shortcut comments dashboard.ts:66 and seed.ts:130; inline chart colours in ReportView.tsx:129-130 (add REPORT_SERIES_COLOR); confusing campaignStatus import alias in reports.ts:8,10; uploadUrlGlobal capacity 10 blocks uploads after 10 rehearsal uploads.
 Wave note: the script gave 3 waves (5 / 1 / 2). f08 depends only on base-contract and would sit alone in wave 2, so it joins the last wave (3 changes): f09 needs f02 and f05, f10 needs f05, all in wave 1. `checkpoint.mjs --waves 2` prints `E2E_MID: none`.
 
 ## Dependency graph
