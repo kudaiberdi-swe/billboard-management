@@ -7,4 +7,17 @@
   :root {
     --app-shell-navbar-offset: 0px !important;
   }
+  /* f09-reports: one block per page where it fits; charts get a fixed paper width */
+  .report-block {
+    break-inside: avoid;
+  }
+  .report-chart {
+    width: 180mm !important;
+  }
+}
+
+/* f09-reports: the report prints A4 portrait */
+@page {
+  size: A4 portrait;
+  margin: 12mm;
 }

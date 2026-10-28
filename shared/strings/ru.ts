@@ -189,4 +189,73 @@ export const ru = {
     slotsUsed: "Занято {used} из 12",
     cycleTitle: "Минутный цикл",
   },
+  // f08-audience-analytics design «Strings»: SoW glossary terms verbatim; texts marked team are team copy.
+  audience: {
+    traffic: "трафик",
+    look: "взгляд на экран",
+    adShow: "показ рекламы",
+    campaignContact: "контакт с кампанией",
+    presumably: "предположительно",
+    noCamera: "нет камеры",
+    age18_24: "18–24",
+    age25_34: "25–34",
+    age35_44: "35–44",
+    age45_54: "45–54",
+    age55: "55+",
+    filterBillboard: "Билборд", // team
+    filterPeriod: "Период", // team
+    people: "Трафик: люди в зоне обзора", // team
+    vehicles: "Трафик: транспорт", // team
+    looks: "Взгляды на экран", // team
+    lookShare: "Доля взглядов среди людей с оценённым направлением взгляда, %", // team
+    byHour: "Аудитория и взгляды по часам", // team
+    chartHour: "Час", // team: column of the chart's table view
+    age: "Возраст (предположительно)", // team
+    gender: "Пол (предположительно)", // team
+    male: "Мужчины", // team
+    female: "Женщины", // team
+    percent: "{value} %", // team
+    termsTitle: "Термины", // team
+    // TODO(client): exact text of the algorithm-estimate note (SoW §4.8 AC2); team draft below.
+    estimateNote: "Возраст и пол — оценка алгоритма, не точные данные.", // team
+    // TODO(client): Russian definitions of the 4 terms (SoW §10.1 is in English); team translations below.
+    trafficMeaning: "Количество объектов, обнаруженных в зоне наблюдения.", // team
+    lookMeaning: "Оценка того, что человек посмотрел в сторону экрана.", // team
+    adShowMeaning: "Воспроизведение конкретной рекламы.", // team
+    campaignContactMeaning: "Возможный контакт со зрителем во время показа конкретной рекламы.", // team
+  },
+  // f09-reports design «Strings»: disclaimer, print, placement, screenAnalytics SoW verbatim; glossary terms §10.1; the rest team copy.
+  reports: {
+    disclaimer: "Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват",
+    print: "Печать / сохранить в PDF",
+    placement: "Результаты размещения",
+    screenAnalytics: "Аналитика экранов",
+    planned: "Запланированные показы",
+    log: "Показы по журналу",
+    completion: "Процент выполнения плана",
+    traffic: "Трафик у экранов за период",
+    looks: "Взгляды на экран",
+    contacts: "Оценочные контакты с кампанией",
+    campaign: "Кампания",
+    period: "Период",
+    city: "Город",
+    screen: "Билборд",
+    allCities: "Все города",
+    allScreens: "Все билборды",
+    selectCampaign: "Выберите кампанию",
+    advertiser: "Рекламодатель",
+    cities: "Города",
+    screens: "Экраны",
+    byDay: "Показы по дням",
+    byScreen: "Распределение по экранам",
+    noCamera: "Экранов без камеры: {count} (нет камеры)",
+    noPlan: "—",
+    percent: "{value} %", // team
+    date: "Дата", // team: column of the chart's table view
+  },
+  simulate: {
+    // f10-simulate-shows; button from SoW 4.10, done is team copy
+    button: "Смоделировать показы",
+    done: "Показы смоделированы: {from} – {to}",
+  },
 };

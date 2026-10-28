@@ -1,6 +1,8 @@
 // Demo access, seed and reset (design D3, D3a, D7; ADR-0003, ADR-0006).
 import { v } from "convex/values";
-import { internalMutation, mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
+import type { Id } from "./_generated/dataModel";
+import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { requireActor } from "./lib/auth";
 import { SESSION_DAYS } from "./lib/config";
 import { fail } from "./lib/errors";
@@ -11,7 +13,25 @@ import { seedData } from "./seed";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_PASSWORD = 200;
 const MIN_ENV_PASSWORD = 24;
-const DOMAIN_TABLES = ["showLog", "screenEvents", "campaigns", "screens"] as const;
+const DOMAIN_TABLES = ["screenEvents", "campaigns", "screens"] as const;
+// showLog rows deleted per transaction, far below the Convex per-transaction write limit with the ~1 000 seed writes.
+export const RESET_LOG_BATCH = 4000;
+
+/** Deletes up to RESET_LOG_BATCH log rows of these campaigns; schedules purgeShowLog for the rest. */
+async function deleteShowLog(ctx: MutationCtx, campaignIds: Id<"campaigns">[]): Promise<void> {
+  const left = [...campaignIds];
+  let budget = RESET_LOG_BATCH;
+  while (left.length > 0 && budget > 0) {
+    const rows = await ctx.db
+      .query("showLog")
+      .withIndex("by_campaign", (q) => q.eq("campaignId", left[0]))
+      .take(budget);
+    for (const row of rows) await ctx.db.delete(row._id);
+    budget -= rows.length;
+    if (budget > 0) left.shift(); // a full page may leave rows of left[0]: the next run reads it again
+  }
+  if (left.length > 0) await ctx.scheduler.runAfter(0, internal.demo.purgeShowLog, { campaignIds: left });
+}
 
 /** Constant-time compare: the time depends only on the lengths, never on where the strings differ. */
 function sameText(a: string, b: string): boolean {
@@ -70,14 +90,27 @@ export const reset = mutation({
   returns: v.null(),
   handler: async (ctx, { sessionId }) => {
     await requireActor(ctx, sessionId);
-    // shortcut: deletes all showLog in one transaction; fine at seed size (ADR-0006: ~100 screens, a few hundred log rows) — F-10 must cap the simulated period or batch deletes.
-    for (const c of await ctx.db.query("campaigns").collect()) {
+    const campaigns = await ctx.db.query("campaigns").collect(); // ≤ 200 (campaigns.create cap)
+    for (const c of campaigns) {
       if (c.creative.kind === "video") await ctx.storage.delete(c.creative.storageId);
     }
+    // Old log rows go in bounded pages; rows left for purgeShowLog point at deleted campaigns and screens,
+    // so no reader counts them (readers go by the new campaign or screen ids).
+    await deleteShowLog(ctx, campaigns.map((c) => c._id));
     for (const table of DOMAIN_TABLES) {
       for (const row of await ctx.db.query(table).collect()) await ctx.db.delete(row._id);
     }
     await seedData(ctx, kzNow(Date.now()).date);
+    return null;
+  },
+});
+
+/** Continues the log delete of demo.reset in bounded pages until the deleted campaigns have no rows. */
+export const purgeShowLog = internalMutation({
+  args: { campaignIds: v.array(v.id("campaigns")) },
+  returns: v.null(),
+  handler: async (ctx, { campaignIds }) => {
+    await deleteShowLog(ctx, campaignIds);
     return null;
   },
 });
