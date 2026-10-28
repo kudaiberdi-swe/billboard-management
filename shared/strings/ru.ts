@@ -55,4 +55,16 @@ export const ru = {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
   },
+  schedule: {
+    // f07-schedule; slotTime from SoW 4.7.3, the rest team copy
+    slotTime: "{from}–{to} сек.",
+    city: "Город",
+    allCities: "Все",
+    billboard: "Билборд",
+    date: "Дата",
+    selectBillboard: "Выберите билборд, чтобы увидеть расписание",
+    hourRange: "{from}–{to}",
+    slotsUsed: "Занято {used} из 12",
+    cycleTitle: "Минутный цикл",
+  },
 };
