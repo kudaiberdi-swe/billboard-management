@@ -55,4 +55,24 @@ export const ru = {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
   },
+  // f05-campaign-list (team copy; «Запланированные показы», «Показы по журналу» from the SoW glossary)
+  campaigns: {
+    name: "Название",
+    advertiser: "Рекламодатель",
+    period: "Период",
+    cities: "Города",
+    city: "Город",
+    screens: "Экраны",
+    screenCount: "Экранов: {count}",
+    status: "Статус",
+    planned: "Запланированные показы",
+    log: "Показы по журналу",
+    empty: "Кампаний пока нет",
+    hours: "Часы показа",
+    slots: "Слотов в минутном цикле",
+    creative: "Креатив",
+    back: "К списку кампаний",
+    screenCode: "Код",
+    screenStatus: "Состояние",
+  },
 };
