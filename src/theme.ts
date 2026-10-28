@@ -18,3 +18,9 @@ export const DEMO_COLOR = "orange";
 export const NAVBAR_WIDTH = 248;
 /** Password form width, px. */
 export const LOGIN_WIDTH = 360;
+/** Height of a chart plot, px. */
+export const CHART_HEIGHT = 240;
+/** Date shown to the user (dayjs format). */
+export const DATE_FORMAT = "DD.MM.YYYY";
+/** Numbers are shown with Russian digit grouping and decimal comma. */
+export const NUMBER_LOCALE = "ru-RU";
