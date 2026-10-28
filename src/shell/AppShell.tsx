@@ -12,6 +12,7 @@ import { Campaigns } from "../routes/Campaigns";
 import { Home } from "../routes/Home";
 import { Reports } from "../routes/Reports";
 import { Schedule } from "../routes/Schedule";
+import { NewCampaign } from "../routes/campaigns/NewCampaign";
 
 const SECTIONS: { path: string; label: StringsKey; Page: () => React.JSX.Element }[] = [
   { path: "/", label: "routes.home", Page: Home },
@@ -49,6 +50,7 @@ export function AppShell() {
           {SECTIONS.map(({ path, Page }) => (
             <Route key={path} path={path} element={<Page />} />
           ))}
+          <Route path="/campaigns/new" element={<NewCampaign />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </MantineAppShell.Main>

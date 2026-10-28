@@ -55,4 +55,34 @@ export const ru = {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
   },
+  // f06-campaign-create design «Strings»: team copy; TODO(client) confirm the field labels.
+  campaignForm: {
+    title: "Новая кампания",
+    create: "Создать кампанию",
+    save: "Сохранить",
+    cancel: "Отмена",
+    fields: {
+      name: "Название",
+      advertiser: "Рекламодатель",
+      startDate: "Дата начала",
+      endDate: "Дата окончания",
+      screenIds: "Экраны",
+      startHour: "Начало показа",
+      endHour: "Конец показа",
+      slotsPerCycle: "Слотов в минутном цикле",
+      creative: "Креатив",
+    },
+    slotsHint: "1 слот = {slot} сек. в цикле {cycle} сек.",
+    creativePlaceholder: "Готовый макет",
+    creativeVideo: "Видео 5 сек.",
+    placeholderItem: "Макет {n}", // team: accessible name of a placeholder image
+    fits: "Свободных слотов достаточно",
+    previewEmpty: "Выберите экраны, даты и часы показа, чтобы проверить свободные слоты.", // team: preview empty state
+    plannedTitle: "Запланированные показы",
+    perScreenPerDay: "На экран в день",
+    perDay: "Всего в день",
+    perPeriod: "За период",
+    andMore: "и другие",
+    uploading: "Загрузка видео…",
+  },
 };
