@@ -8,7 +8,7 @@ QA failures still open after the round 3 re-examination.
 - Reproduce: `node "<plugin>/skills/specs/scripts/spec-gate.mjs"`
 - Evidence: F-1 (navigation, demo labels, access, reset) is built and archived in `openspec/changes/archive/2026-10-28-base-contract/` (proposal: "SoW functions: 4.1, 4.11"). The gate reads only active changes.
 - Re-examination: false gap; the function is covered by the archived base contract. No spec work needed.
-- Status: open
+- Status: fixed 369f15c (false gap; F-1/F-11 confirmed by the final e2e run 1)
 
 ## KI-02: spec gate reports SoW 4.11 in no change
 - Wave: specs; change: none; found: 2026-10-28
@@ -16,4 +16,4 @@ QA failures still open after the round 3 re-examination.
 - Reproduce: `node "<plugin>/skills/specs/scripts/spec-gate.mjs"`
 - Evidence: F-11 (demo seed data) is built and archived in `openspec/changes/archive/2026-10-28-base-contract/` (proposal: "SoW functions: 4.1, 4.11"). The gate reads only active changes.
 - Re-examination: false gap; the function is covered by the archived base contract. No spec work needed.
-- Status: open
+- Status: fixed 369f15c (false gap; F-1/F-11 confirmed by the final e2e run 1)
