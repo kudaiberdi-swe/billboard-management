@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Билборды: обзор демо</title>
+<style>
+  :root {
+    --bg: #ffffff; --surface: #f5f7fa; --text: #1a1d23; --muted: #5b6270;
+    --border: #d9dee6; --accent: #2457c5; --accent-soft: #e6edfb;
+    --ok: #1d7a46; --warn: #a15c00; --todo: #b42318;
+    --radius: 10px; --gutter: 16px; --max: 960px;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #12151a; --surface: #1b1f26; --text: #e7eaf0; --muted: #a0a8b6;
+      --border: #2e343e; --accent: #7aa2ff; --accent-soft: #1e2a44;
+      --ok: #5cc98b; --warn: #f0b04f; --todo: #ff8a80; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #12151a; --surface: #1b1f26; --text: #e7eaf0; --muted: #a0a8b6;
+    --border: #2e343e; --accent: #7aa2ff; --accent-soft: #1e2a44;
+    --ok: #5cc98b; --warn: #f0b04f; --todo: #ff8a80; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.55 var(--font); }
+  main { max-width: var(--max); margin: 0 auto; padding: 24px var(--gutter) 64px; }
+  header.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 1.75rem; margin: 0; } h2 { margin-top: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: .3rem; }
+  .muted { color: var(--muted); }
+  nav.toc { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin: 16px 0; }
+  nav.toc a { color: var(--accent); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .card h3 { margin: 0 0 6px; font-size: 1.05rem; }
+  .card p, .card ul { margin: 0; }
+  .card ul { padding-left: 18px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { background: var(--surface); }
+  .tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .8rem; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+  .tag.ok { color: var(--ok); } .tag.warn { color: var(--warn); } .tag.todo { color: var(--todo); }
+  figure { margin: 16px 0; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px; overflow-x: auto; }
+  figcaption { color: var(--muted); font-size: .9rem; margin-top: 8px; }
+  svg text { fill: var(--text); } svg .box { fill: var(--bg); stroke: var(--accent); } svg .line { stroke: var(--muted); fill: none; }
+  pre.mermaid { background: transparent; margin: 0; }
+  ol.questions li { margin-bottom: 10px; }
+  .note { border: 1px solid var(--warn); background: var(--surface); padding: 12px 16px; border-radius: var(--radius); }
+  button.theme { background: var(--surface); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 12px; cursor: pointer; }
+</style>
+</head>
+<body>
+<main>
+  <header class="top">
+    <div>
+      <h1>Платформа управления цифровыми билбордами: демо</h1>
+      <p class="muted">Обзор проекта. Источник: «ТЗ на демо - Наружная реклама (final).pdf» (далее «ТЗ»). Дата: 2026-10-28.</p>
+    </div>
+    <button class="theme" type="button" id="theme">Сменить тему</button>
+  </header>
+
+  <nav class="toc" aria-label="Содержание">
+    <a href="#what">1. Что это за проект</a> ·
+    <a href="#roles">2. Кто пользуется</a> ·
+    <a href="#flows">3. Сценарии</a> ·
+    <a href="#reqs">4. Карта требований</a> ·
+    <a href="#questions">5. Открытые вопросы</a>
+  </nav>
+
+  <section id="what">
+    <h2>1. Что это за проект</h2>
+    <p>Мы делаем интерактивную веб-демонстрацию платформы для владельца сети цифровых билбордов (ТЗ §1). Демо показывает бизнес-логику будущего продукта. Владелец видит сеть экранов, управляет кампаниями и расписанием, видит занятость инвентаря и аудиторию. Он формирует отчёт для рекламодателя (ТЗ §1).</p>
+    <p>Демо не подключается к реальным экранам и камерам. Все смоделированные показатели имеют пометку «Демонстрационные данные» (ТЗ §1, §5).</p>
+    <div class="cards">
+      <div class="card"><h3>Заказчик</h3><p>Владелец сети примерно из 100 цифровых билбордов в Казахстане (ТЗ §2). Юридическое название: открытый вопрос.</p></div>
+      <div class="card"><h3>Этапы</h3><p>Этап 1: демо (это ТЗ). Следующий этап: ролики другой длительности, реальные интеграции (ТЗ §8, §13). Сроки в ТЗ не указаны.</p></div>
+      <div class="card"><h3>Приложение</h3><p>Одно веб-приложение для браузера на компьютере. Интерфейс на русском языке. Валюта — тенге (ТЗ §3).</p></div>
+      <div class="card"><h3>Тестовые данные</h3><ul><li>100 билбордов: Астана, Караганда, Атырау, Восточно-Казахстанский регион</li><li>несколько рекламодателей и кампаний</li><li>журнал показов хотя бы для 1 кампании</li><li>почасовая аналитика аудитории и уведомления</li></ul><p class="muted">ТЗ §7, §13</p></div>
+    </div>
+
+    <h3>Модель слотов (принято для демо)</h3>
+    <p>Рекламный цикл длится 60 секунд. Цикл состоит из 12 слотов по 5 секунд. Цикл повторяется в часы работы экрана (ТЗ §2).</p>
+    <p>Пример: 1 слот в цикле с 08:00 до 20:00 даёт 720 плановых показов в день на 1 экране. На 3 экранах — 2 160 показов в день (ТЗ §8).</p>
+    <p class="note">ТЗ отмечает конфликт: в исходном запросе «Суточная сетка каждой панели делится на 720 слотов». Но 720 слотов по 5 секунд — это 1 час, а не сутки. Коммерческую модель надо согласовать (вопрос 1).</p>
+
+    <h3>Термины (ТЗ §10)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Термин</th><th>Значение</th></tr></thead>
+        <tbody>
+          <tr><td>«трафик»</td><td>Количество объектов, обнаруженных в зоне наблюдения.</td></tr>
+          <tr><td>«взгляд на экран»</td><td>Оценка того, что человек смотрел в сторону экрана.</td></tr>
+          <tr><td>«показ рекламы»</td><td>Воспроизведение конкретного ролика.</td></tr>
+          <tr><td>«контакт с кампанией»</td><td>Возможный контакт со зрителем во время показа конкретной рекламы.</td></tr>
+          <tr><td>«запланированные показы» и «показы по журналу»</td><td>Два разных показателя. Интерфейс показывает их раздельно (ТЗ §6).</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="roles">
+    <h2>2. Кто пользуется</h2>
+    <div class="cards">
+      <div class="card"><h3>«Администратор сети / владелец билбордов»</h3><p>Основная роль демо. Видит сеть экранов, кампании, расписание и отчёты. Создаёт кампанию и назначает ей слоты. Использует: веб-приложение, все 6 разделов (ТЗ §4, §5).</p></div>
+      <div class="card"><h3>«Рекламодатель» (вид отчёта)</h3><p>В демо нет отдельной учётной записи. Можно показать интерфейс отчёта, который в будущем получит рекламодатель (ТЗ §4). Учётные записи и права для демо не обязательны (ТЗ §4).</p></div>
+    </div>
+    <p>Разделы меню (ТЗ §5): «Главная», «Билборды», «Рекламные кампании», «Расписание», «Аналитика аудитории», «Отчёты».</p>
+  </section>
+
+  <section id="flows">
+    <h2>3. Сценарии</h2>
+
+    <h3>Администратор: сквозной сценарий встречи (ТЗ §12)</h3>
+    <figure>
+      <pre class="mermaid">
+flowchart LR
+  A["«Главная»: сеть из 100 экранов"] --> B["Фильтр: Астана"]
+  B --> C["Карточка билборда: занятость, расписание, аудитория"]
+  C --> D["Создать кампанию на несколько экранов"]
+  D --> E["Назначить свободные слоты, увидеть расчёт показов"]
+  E --> F["Сохранить кампанию"]
+  F --> G["«Расписание»: кампания на выбранных экранах"]
+  G --> H["«Отчёты»: отчёт по кампании"]
+      </pre>
+      <figcaption>Кратко: 9 шагов ТЗ §12 от главной страницы до отчёта для рекламодателя.</figcaption>
+    </figure>
+
+    <h3>Администратор: создание кампании (ТЗ §8)</h3>
+    <figure>
+      <pre class="mermaid">
+flowchart TD
+  A["Название и рекламодатель"] --> B["Даты начала и окончания"]
+  B --> C["Экраны (1 или больше)"]
+  C --> D["Часы показа"]
+  D --> E["Слотов в минутном цикле (1–12)"]
+  E --> F["Ролик 5 сек. или заглушка"]
+  F --> G{"Свободных слотов достаточно?"}
+  G -- "Нет" --> H["Понятное сообщение"]
+  H --> E
+  G -- "Да" --> I["Предварительный расчёт плановых показов"]
+  I --> J["Сохранить"]
+  J --> K["Кампания в списке и в расписании"]
+      </pre>
+      <figcaption>Кратко: система проверяет свободные слоты перед сохранением. Занятый слот нельзя отдать 2 кампаниям на 1 экране в одно время.</figcaption>
+    </figure>
+
+    <h3>Администратор: просмотр расписания (ТЗ §9)</h3>
+    <figure>
+      <pre class="mermaid">
+flowchart LR
+  A["Город и билборд"] --> B["Дата"]
+  B --> C["Расписание по часам"]
+  C --> D["Открыть час: минутный цикл"]
+  D --> E["12 слотов: кампания или «Свободно»"]
+  E --> F["Карточка кампании"]
+      </pre>
+      <figcaption>Кратко: пользователь идёт от экрана и даты к составу 12 слотов и к карточке кампании.</figcaption>
+    </figure>
+
+    <h3>Администратор: отчёт для рекламодателя (ТЗ §11, §12)</h3>
+    <figure>
+      <pre class="mermaid">
+flowchart TD
+  A["Фильтры: кампания, период, город, билборд"] --> B{"Есть журнал показов?"}
+  B -- "Да (подготовленная кампания)" --> D["Отчёт"]
+  B -- "Нет (новая кампания)" --> C["Действие «Смоделировать показы»"]
+  C --> D
+  D --> E["Блок 1: «Результаты размещения» — план, журнал, % выполнения"]
+  D --> F["Блок 2: «Аналитика экранов» — трафик и взгляды"]
+  D --> G["«Печать / сохранить в PDF»"]
+      </pre>
+      <figcaption>Кратко: новая кампания не получает «фактические показы» без явного действия. Отчёт делит результаты размещения и аналитику экранов.</figcaption>
+    </figure>
+    <p>Процент выполнения плана = показы по журналу / запланированные показы × 100% (ТЗ §11).</p>
+    <p>Статусы кампании в ТЗ: «Активна», «Запланирована» (ТЗ §8). Статусы экрана: «онлайн», «офлайн» (ТЗ §7).</p>
+  </section>
+
+  <section id="reqs">
+    <h2>4. Карта требований</h2>
+    <p class="muted">ТЗ не даёт ID требованиям. ID ниже — номера разделов и пунктов ТЗ.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>ID</th><th>Название</th><th>Роль</th><th>Этап</th><th>Статус</th><th>Источник</th></tr></thead>
+        <tbody>
+          <tr><td>§5</td><td>Меню из 6 разделов; пометка «Демонстрационные данные»</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §5</td></tr>
+          <tr><td>§6</td><td>«Главная»: карточки показателей, график занятости, экраны по городам, активные кампании, уведомления, фильтры</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §6</td></tr>
+          <tr><td>§7</td><td>«Билборды»: 100 экранов, фильтры, поиск, карточка билборда</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §7</td></tr>
+          <tr><td>§7-карта</td><td>Карта с расположением экранов</td><td>Администратор</td><td>Демо</td><td><span class="tag todo">Неясно</span></td><td>ТЗ §7</td></tr>
+          <tr><td>§8</td><td>«Рекламные кампании»: список и создание с проверкой слотов</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §8</td></tr>
+          <tr><td>§8-ролики</td><td>Ролики длительностью не 5 секунд</td><td>Администратор</td><td>Следующий</td><td><span class="tag warn">Позже</span></td><td>ТЗ §8</td></tr>
+          <tr><td>§9</td><td>«Расписание»: часы, минутный цикл, 12 слотов</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §9</td></tr>
+          <tr><td>§10</td><td>«Аналитика аудитории»: смоделированные показатели, возраст и пол как оценка</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §10</td></tr>
+          <tr><td>§11</td><td>«Отчёты»: фильтры, 2 блока данных, печать через браузер</td><td>Администратор, Рекламодатель (вид)</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §11</td></tr>
+          <tr><td>§11-PDF</td><td>Автоматический PDF-отчёт</td><td>Администратор</td><td>Демо</td><td><span class="tag todo">Неясно</span></td><td>ТЗ §11</td></tr>
+          <tr><td>§12</td><td>Сквозной сценарий встречи; действие «Смоделировать показы»</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §12</td></tr>
+          <tr><td>§13-данные</td><td>Согласованные тестовые данные между разделами</td><td>—</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §13</td></tr>
+          <tr><td>§13-хранение</td><td>Кампании сохраняются после обновления страницы</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §13</td></tr>
+          <tr><td>§13-интеграции</td><td>LED-экраны, камеры, компьютерное зрение, платежи, рассылка отчётов, кабинеты рекламодателей, счета</td><td>—</td><td>Следующий</td><td><span class="tag warn">Позже</span></td><td>ТЗ §13</td></tr>
+          <tr><td>§4-права</td><td>Отдельные учётные записи и права</td><td>—</td><td>Следующий</td><td><span class="tag warn">Позже</span></td><td>ТЗ §4</td></tr>
+          <tr><td>§14.1</td><td>Приложение открывается, все разделы доступны</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.2</td><td>100 билбордов, фильтры по городу и статусу</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.3</td><td>Карточка билборда с расписанием и аналитикой</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.4</td><td>Создание кампании: экраны, период, часы, слоты</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.5</td><td>Расчёт планового количества показов</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.6</td><td>Не больше 12 слотов на 1 экране в одно время</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.7</td><td>Кампания в списке и расписании, сохраняется после обновления</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.8</td><td>Отчёт подготовленной кампании: план, журнал, % выполнения</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.9</td><td>Аналитика аудитории отделена от результатов кампании</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.10</td><td>Пометка демонстрационных данных во всех разделах и отчёте</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+          <tr><td>§14.11</td><td>Печать или сохранение отчёта в PDF через браузер</td><td>Администратор</td><td>Демо</td><td><span class="tag ok">В объёме</span></td><td>ТЗ §14</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="questions">
+    <h2>5. Открытые вопросы</h2>
+    <ol class="questions">
+      <li><strong>Коммерческая модель слотов.</strong> Исходный запрос: «Суточная сетка каждой панели делится на 720 слотов». ТЗ принимает для демо цикл 60 секунд из 12 слотов. Какие длительность цикла, режим работы и модель продаж в рабочей системе? <span class="muted">Источник: ТЗ §2. Ответ: заказчик.</span></li>
+      <li><strong>Режим работы экранов.</strong> ТЗ требует показывать «режим работы», но не даёт часов. Для демо берём тестовые часы? Есть ли реальные часы работы? <span class="muted">Источник: ТЗ §7. Ответ: заказчик.</span></li>
+      <li><strong>Формула «занятости рекламного инвентаря, %».</strong> ТЗ не даёт формулу. Предложение: занятые слоты / все слоты в часы работы за период. <span class="muted">Источник: ТЗ §6, §7. Ответ: команда предлагает, заказчик подтверждает.</span></li>
+      <li><strong>Формула «оценочного количества контактов с аудиторией».</strong> ТЗ не даёт формулу. <span class="muted">Источник: ТЗ §6. Ответ: команда предлагает, заказчик подтверждает.</span></li>
+      <li><strong>Порог уведомления «Кампания скоро завершится».</strong> За сколько дней до окончания? <span class="muted">Источник: ТЗ §6. Ответ: команда (тестовое значение).</span></li>
+      <li><strong>Статусы кампании.</strong> ТЗ называет «Активна» и «Запланирована». Нужен ли статус для завершённой кампании и как он называется? <span class="muted">Источник: ТЗ §8. Ответ: заказчик.</span></li>
+      <li><strong>Карта экранов.</strong> ТЗ допускает карту, если она не усложняет демо. Делаем карту без внешней интеграции или только список? <span class="muted">Источник: ТЗ §7. Ответ: команда.</span></li>
+      <li><strong>Загрузка ролика.</strong> Пользователь загружает свой файл 5 секунд или выбирает из готовых заглушек? <span class="muted">Источник: ТЗ §8. Ответ: команда.</span></li>
+      <li><strong>Проверка слотов при частичном пересечении часов.</strong> На каком шаге времени система проверяет конфликт: час, минута? <span class="muted">Источник: ТЗ §8, §9. Ответ: команда.</span></li>
+      <li><strong>Возрастные группы и показатель транспорта.</strong> Какие возрастные группы показывать? У каких экранов есть показатель транспорта? <span class="muted">Источник: ТЗ §10. Ответ: команда (тестовые значения).</span></li>
+      <li><strong>Цены в тенге.</strong> ТЗ задаёт валюту, но не даёт цен и не требует цен в интерфейсе. Нужны ли цены в демо? <span class="muted">Источник: ТЗ §3. Ответ: заказчик.</span></li>
+      <li><strong>Автоматический PDF-отчёт.</strong> Делаем только печать через браузер или также PDF-файл? <span class="muted">Источник: ТЗ §11. Ответ: команда.</span></li>
+      <li><strong>Доступ к демо.</strong> ТЗ не требует учётных записей. Демо открыто по ссылке или закрыто паролем? Видят ли все зрители одни и те же созданные кампании? Нужен ли сброс данных перед встречей? <span class="muted">Источник: ТЗ §4, §13. Ответ: заказчик и команда.</span></li>
+      <li><strong>Сроки.</strong> ТЗ не даёт дату встречи и срок готовности демо. <span class="muted">Источник: ТЗ (нет раздела). Ответ: заказчик.</span></li>
+      <li><strong>Юридическое название заказчика.</strong> Нужно для SoW. <span class="muted">Источник: ТЗ (нет данных). Ответ: заказчик.</span></li>
+    </ol>
+  </section>
+</main>
+<script>
+  (function () {
+    var root = document.documentElement, btn = document.getElementById("theme");
+    try { var saved = localStorage.getItem("theme"); if (saved) root.dataset.theme = saved; } catch (e) {}
+    function isDark() {
+      return root.dataset.theme ? root.dataset.theme === "dark"
+        : matchMedia("(prefers-color-scheme: dark)").matches;
+    }
+    btn.addEventListener("click", function () {
+      root.dataset.theme = isDark() ? "light" : "dark";
+      try { localStorage.setItem("theme", root.dataset.theme); } catch (e) {}
+      location.reload(); // re-render Mermaid in the new theme
+    });
+    window.__echoDark = isDark();
+  })();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.15.0/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true, theme: window.__echoDark ? "dark" : "default", securityLevel: "strict" });</script>
+</body>
+</html>
