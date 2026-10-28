@@ -1,10 +1,28 @@
-// Setup entry only (task 1.1). The frontend skeleton (task 5.2) replaces it with the providers and the shell.
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { t } from "../shared/strings";
+import { MantineProvider } from "@mantine/core";
+import { DatesProvider } from "@mantine/dates";
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { BrowserRouter } from "react-router-dom";
+import "dayjs/locale/ru";
+import "@mantine/core/styles.css";
+import "@mantine/dates/styles.css";
+import "./print.css";
+import { Gate } from "./shell/Gate";
+import { theme } from "./theme";
+
+const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <main>{t("ru", "app.name")}</main>
+    <MantineProvider theme={theme}>
+      <DatesProvider settings={{ locale: "ru" }}>
+        <ConvexProvider client={convex}>
+          <BrowserRouter>
+            <Gate />
+          </BrowserRouter>
+        </ConvexProvider>
+      </DatesProvider>
+    </MantineProvider>
   </StrictMode>,
 );

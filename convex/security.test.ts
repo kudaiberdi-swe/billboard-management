@@ -22,7 +22,10 @@ function setup() {
 }
 type T = ReturnType<typeof setup>;
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
+});
 
 /** Calls one key gets before its bucket is empty: the capacity, else the rate. */
 function allowance(name: LimitName): number {
@@ -84,6 +87,7 @@ test("[base-contract] wrong attempts stay counted", async () => {
 });
 
 test("[base-contract] global sign-in bucket", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] }); // frozen clock: the bucket must not refill while 300 calls run on a busy machine
   const t = setup();
   for (let i = 0; i < allowance("signInGlobal"); i += 1) await wrong(t, crypto.randomUUID());
   await expectRateLimited(t.mutation(api.demo.signIn, { sessionId: crypto.randomUUID(), password: PASSWORD }));

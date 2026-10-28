@@ -1,0 +1,20 @@
+// Theme tokens: the one place for colour, type, spacing and size choices (no DESIGN.md yet).
+// Operate mode, laptop in a meeting room: light surface, neutral greys, one calm accent for action and
+// the current menu item, a warm colour reserved for the demo-data label.
+import { createTheme } from "@mantine/core";
+
+export const theme = createTheme({
+  primaryColor: "indigo",
+  primaryShade: 7,
+  defaultRadius: "sm",
+  fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  headings: { fontWeight: "600" },
+  focusRing: "auto",
+});
+
+/** Colour of every simulated-value label (PRODUCT.md principle 1). */
+export const DEMO_COLOR = "orange";
+/** Left menu width, px. */
+export const NAVBAR_WIDTH = 248;
+/** Password form width, px. */
+export const LOGIN_WIDTH = 360;

@@ -39,17 +39,17 @@ Spec ids: `demo-access`, `demo-data`, `slot-model`, `statuses`, `audience-analyt
 
 ## 5. Frontend skeleton
 
-- [ ] 5.1 (frontend) Add the project namespaces to `shared/strings/ru.ts` per D9 (errors, status, slot, cities, notifications, demo, login, screenEvents); verify `shared/strings/strings.test.ts` passes.
-- [ ] 5.2 (frontend) Write `src/main.tsx` providers, `src/session.ts` (`useGuardedQuery`, `useGuardedMutation`) and `src/errors.ts` (`errorText`) per D3, D5, D9; verify `error code becomes text`, `unknown error` and `status codes become text` component tests.
-- [ ] 5.3 (frontend) Write `src/shell/Gate.tsx` and `src/shell/PasswordScreen.tsx`; verify `visitor without a session sees only the password screen`, `correct password opens Главная`, `wrong password shows an error`, `expired session returns to the password screen`.
-- [ ] 5.4 (frontend) Write `src/shell/AppShell.tsx` (left menu from the contract routes, «BillBoard», «Сбросить демо» with confirm modal, class `no-print`) and empty pages in `src/routes/` for the 6 sections; verify `menu shows the 6 sections in order`, `menu item opens its section`, `unknown route`, `reset asks for confirmation`, `reset cancelled`, `reset confirmed`.
-- [ ] 5.5 (frontend) Write `src/components/DemoLabel.tsx` and `src/print.css`; verify `demo label shows the verbatim text`.
-- [ ] 5.6 (frontend) Add a check that fails on Cyrillic text in `src/**/*.tsx` outside `shared/strings/`; verify `no inline text in components`.
+- [x] 5.1 (frontend) Add the project namespaces to `shared/strings/ru.ts` per D9 (errors, status, slot, cities, notifications, demo, login, screenEvents); verify `shared/strings/strings.test.ts` passes.
+- [x] 5.2 (frontend) Write `src/main.tsx` providers, `src/session.ts` (`useGuardedQuery`, `useGuardedMutation`) and `src/errors.ts` (`errorText`) per D3, D5, D9; verify `error code becomes text`, `unknown error` and `status codes become text` component tests.
+- [x] 5.3 (frontend) Write `src/shell/Gate.tsx` and `src/shell/PasswordScreen.tsx`; verify `visitor without a session sees only the password screen`, `correct password opens Главная`, `wrong password shows an error`, `expired session returns to the password screen`.
+- [x] 5.4 (frontend) Write `src/shell/AppShell.tsx` (left menu from the contract routes, «BillBoard», «Сбросить демо» with confirm modal, class `no-print`) and empty pages in `src/routes/` for the 6 sections; verify `menu shows the 6 sections in order`, `menu item opens its section`, `unknown route`, `reset asks for confirmation`, `reset cancelled`, `reset confirmed`.
+- [x] 5.5 (frontend) Write `src/components/DemoLabel.tsx` and `src/print.css`; verify `demo label shows the verbatim text`.
+- [x] 5.6 (frontend) Add a check that fails on Cyrillic text in `src/**/*.tsx` outside `shared/strings/`; verify `no inline text in components`.
 
 ## 6. E2E setup and integration
 
-- [ ] 6.1 (both) Copy the plugin e2e templates (`playwright.config.ts`, `e2e/fixtures.ts`, `e2e/smoke.spec.ts`, `e2e/a11y.spec.ts`, `.playwright/cli.config.json`), replace the dev-identity sign-in with the password screen and `E2E_DEMO_PASSWORD`, set the smoke routes to the 6 sections; run `npx playwright install chromium`; verify the smoke and a11y specs pass against the local stack with the seed.
-- [ ] 6.2 (both) Run the whole local gate: `npx tsc --noEmit`, `npx vitest run`, `npx playwright test --grep @smoke`; verify all pass.
+- [ ] 6.1 (both) Copy the plugin e2e templates (`playwright.config.ts`, `e2e/fixtures.ts`, `e2e/smoke.spec.ts`, `e2e/a11y.spec.ts`, `.playwright/cli.config.json`), replace the dev-identity sign-in with the password screen and `E2E_DEMO_PASSWORD`, set the smoke routes to the 6 sections; run `npx playwright install chromium`; verify the smoke and a11y specs pass against the local stack with the seed. (Files done: `playwright.config.ts` (Vite web server), `e2e/fixtures.ts` (password sign-in, `admin` -> 6 routes), `e2e/smoke.spec.ts`, `e2e/a11y.spec.ts`, `.playwright/cli.config.json`. Open: the browser run against the local stack, wave QA.)
+- [ ] 6.2 (both) Run the whole local gate: `npx tsc --noEmit`, `npx vitest run`, `npx playwright test --grep @smoke`; verify all pass. (Done: `tsc`, `vitest` 99/99. Open: the `@smoke` browser run, wave QA.)
 
 ## Workflow follow-up
 

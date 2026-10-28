@@ -45,10 +45,12 @@
     "dir": "src",
     "writers": [
       "useMutation",
-      "useAction"
+      "useAction",
+      "useGuardedMutation"
     ],
     "readers": [
-      "useQuery"
+      "useQuery",
+      "useGuardedQuery"
     ],
     "allowLocal": []
   },
