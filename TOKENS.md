@@ -18,7 +18,7 @@ Set with `npx convex env set NAME value`. On production, name the target explici
 
 | Key | What for | Where to get it | Required |
 | --- | --- | --- | --- |
-| `<KEY_NAME>` | <what stops working without it> | <who issues it> | yes / no |
+| `DEMO_PASSWORD` | shared demo password checked by `demo.signIn` (ADR-0003); unset = nobody can sign in | team: generate a long random value, share with the client | yes |
 
 ## Self-hosted stack
 
