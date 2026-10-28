@@ -118,3 +118,15 @@ test("[base-contract] correct password resets the session bucket", async () => {
   expect(value.value).toBe(allowance("signInPerAccount"));
   for (let i = 0; i < 5; i += 1) expect(await wrong(t)).toEqual({ ok: false, code: "WRONG_PASSWORD" });
 });
+
+test("[wave-1 follow-up] global upload bucket is at demo scale", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] }); // frozen clock: no refill between calls
+  const t = setup();
+  const upload = (sessionId: string) => t.mutation(api.campaigns.generateUploadUrl, { sessionId });
+  const viewers = [crypto.randomUUID(), crypto.randomUUID(), crypto.randomUUID()];
+  for (const sessionId of viewers) await t.mutation(api.demo.signIn, { sessionId, password: PASSWORD });
+  // Two viewers use their per-session bursts (5 each) and empty the global bucket of 10.
+  for (const sessionId of viewers.slice(0, 2)) for (let i = 0; i < allowance("uploadUrlPerUser"); i += 1) await upload(sessionId);
+  expect(allowance("uploadUrlGlobal")).toBe(10);
+  await expectRateLimited(upload(viewers[2]));
+});

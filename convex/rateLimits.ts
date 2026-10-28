@@ -15,7 +15,7 @@ export const LIMITS = {
   signInPerAccount: { kind: "token bucket", rate: 10, period: 15 * MINUTE, capacity: 5 },
   signInGlobal: { kind: "token bucket", rate: 300, period: MINUTE, capacity: 300 },
   uploadUrlPerUser: { kind: "token bucket", rate: 20, period: HOUR, capacity: 5 },
-  uploadUrlGlobal: { kind: "token bucket", rate: 600, period: HOUR, capacity: 100 },
+  uploadUrlGlobal: { kind: "token bucket", rate: 30, period: HOUR, capacity: 10 }, // demo scale
 } satisfies Record<string, RateLimitConfig>;
 
 export type LimitName = keyof typeof LIMITS;

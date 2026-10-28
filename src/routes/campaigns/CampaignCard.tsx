@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import { t, type StringsKey } from "../../../shared/strings";
 import { DemoLabel } from "../../components/DemoLabel";
+import { SimulateShowsButton } from "../../components/SimulateShowsButton";
 import { errorCode, errorText } from "../../errors";
 import { useGuardedQuery } from "../../session";
 import { count, period } from "./format";
@@ -40,7 +41,8 @@ function Card({ id }: { id: string }) {
       <Group justify="space-between">
         <Title order={1}>{c.name}</Title>
         {/* actions area: f10 adds its simulate-shows button here */}
-        <Group>
+        <Group align="flex-start">
+          <SimulateShowsButton campaignId={c._id} />
           <DemoLabel />
         </Group>
       </Group>

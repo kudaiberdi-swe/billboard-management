@@ -253,4 +253,9 @@ export const ru = {
     percent: "{value} %", // team
     date: "Дата", // team: column of the chart's table view
   },
+  simulate: {
+    // f10-simulate-shows; button from SoW 4.10, done is team copy
+    button: "Смоделировать показы",
+    done: "Показы смоделированы: {from} – {to}",
+  },
 };

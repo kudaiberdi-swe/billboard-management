@@ -28,6 +28,7 @@ import type * as reports from "../reports.js";
 import type * as schedule from "../schedule.js";
 import type * as screens from "../screens.js";
 import type * as seed from "../seed.js";
+import type * as showLog from "../showLog.js";
 
 import type {
   ApiFromModules,
@@ -56,6 +57,7 @@ declare const fullApi: ApiFromModules<{
   schedule: typeof schedule;
   screens: typeof screens;
   seed: typeof seed;
+  showLog: typeof showLog;
 }>;
 
 /**

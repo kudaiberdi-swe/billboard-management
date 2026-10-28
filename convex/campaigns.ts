@@ -124,6 +124,7 @@ export const get = query({
 const MAX_CONFLICTS = 1000; // Convex arrays hold at most 8 192 items; design decision 4
 const MAX_SCREENS = 100;
 const MAX_TEXT = 200;
+const MAX_CAMPAIGNS = 200; // demo scale: bounds the full scans of campaigns and the reset (team limit, not client data)
 
 const requestFields = {
   startDate: v.string(),
@@ -218,6 +219,7 @@ export const create = mutation({
   handler: async (ctx, { sessionId, name, advertiser, creative: c, ...args }) => {
     await requireActor(ctx, sessionId);
     const { req, screens, campaigns } = await validateRequest(ctx, args);
+    if (campaigns.length >= MAX_CAMPAIGNS) fail("INVALID_INPUT", { field: "name" });
     const fields = { name: name.trim(), advertiser: advertiser.trim() };
     for (const field of ["name", "advertiser"] as const) {
       if (fields[field].length < 1 || fields[field].length > MAX_TEXT) fail("INVALID_INPUT", { field });

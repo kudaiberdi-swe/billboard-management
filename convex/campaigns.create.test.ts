@@ -184,6 +184,17 @@ test("[f06-campaign-create] empty name is rejected", async () => {
   expect(await campaigns(t)).toEqual([]);
 });
 
+test("[wave-1 follow-up] create is refused at 200 campaigns", async () => {
+  const { t, sessionId, id } = await setup();
+  // Past campaigns on another screen: no slot conflict with the request.
+  for (let i = 0; i < 199; i += 1) await existing(t, [id("KRG-001")], { startDate: "2026-01-01", endDate: "2026-01-01" });
+  await t.mutation(api.campaigns.create, { sessionId, ...form([id("AST-002")]) });
+  expect(await campaigns(t)).toHaveLength(200);
+  const call = t.mutation(api.campaigns.create, { sessionId, ...form([id("AST-003")]) });
+  expect(await failure(call)).toEqual({ code: "INVALID_INPUT", field: "name" });
+  expect(await campaigns(t)).toHaveLength(200);
+});
+
 test("[f06-campaign-create] period over 366 days", async () => {
   const { t, sessionId, id } = await setup();
   const call = t.mutation(api.campaigns.create, { sessionId, ...form([id("AST-002")], { startDate: "2026-01-01", endDate: "2027-01-02" }) });
@@ -300,7 +311,7 @@ test("[f06-campaign-create] upload URL without a session", async () => {
     (await rateLimiter.getValue(ctx, "uploadUrlPerUser", { key: normalizeKey(unknown) })).value,
     (await rateLimiter.getValue(ctx, "uploadUrlGlobal")).value,
   ]);
-  expect(left).toEqual([5, 100]);
+  expect(left).toEqual([5, 10]); // both buckets full: per session 5, global 10
 });
 
 // ---------- create: conflicts ----------
