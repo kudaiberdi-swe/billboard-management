@@ -6,10 +6,10 @@ Reason: aggregates over 100 screens × up to 366 days (occupancy, audience, cont
 
 ## 1. Backend
 
-- [ ] 1.1 (backend) Add `convex/lib/contacts.ts` with `estimateContacts(c, screens, from, to)` per design.md (uses `isOn`, `audienceHour`, `SLOTS_PER_CYCLE`, `datesInRange`); verify with `convex/lib/contacts.test.ts` covering the `campaign-contacts` scenarios.
-- [ ] 1.2 (backend) Add `convex/dashboard.ts` `summary` query with args/returns validators, `requireActor` first, date/period/screen validation and the composition table of design.md; verify with `convex/dashboard.test.ts` (convex-test) for the card, filter, chart, city block, active list and error scenarios.
-- [ ] 1.3 (backend) Add `dashboard.notifications` query (`requireActor`, `notifications(...)` from `convex/lib/status.ts`, network-wide); verify with convex-test for the 4 notification scenarios.
-- [ ] 1.4 (backend) Time `dashboard.summary` on the full seed with a 366-day period in convex-test; verify it stays under 500 ms, else apply the mitigation in design.md Risks and record it with a `// shortcut:` comment.
+- [x] 1.1 (backend) Add `convex/lib/contacts.ts` with `estimateContacts(c, screens, from, to)` per design.md (uses `isOn`, `audienceHour`, `SLOTS_PER_CYCLE`, `datesInRange`); verify with `convex/lib/contacts.test.ts` covering the `campaign-contacts` scenarios.
+- [x] 1.2 (backend) Add `convex/dashboard.ts` `summary` query with args/returns validators, `requireActor` first, date/period/screen validation and the composition table of design.md; verify with `convex/dashboard.test.ts` (convex-test) for the card, filter, chart, city block, active list and error scenarios.
+- [x] 1.3 (backend) Add `dashboard.notifications` query (`requireActor`, `notifications(...)` from `convex/lib/status.ts`, network-wide); verify with convex-test for the 4 notification scenarios.
+- [x] 1.4 (backend) Time `dashboard.summary` on the full seed with a 366-day period in convex-test; verify it stays under 500 ms, else apply the mitigation in design.md Risks and record it with a `// shortcut:` comment.
 
 ## 2. Frontend
 
@@ -22,5 +22,5 @@ Reason: aggregates over 100 screens × up to 366 days (occupancy, audience, cont
 
 ## 3. Tests
 
-- [ ] 3.1 (backend) convex-test titles `[f02-dashboard] <scenario name>` for every scenario in `specs/dashboard/spec.md` and `specs/campaign-contacts/spec.md` that is backend-observable; verify `npx vitest run convex` passes.
+- [x] 3.1 (backend) convex-test titles `[f02-dashboard] <scenario name>` for every scenario in `specs/dashboard/spec.md` and `specs/campaign-contacts/spec.md` that is backend-observable; verify `npx vitest run convex` passes.
 - [ ] 3.2 (frontend) Testing Library titles `[f02-dashboard] <scenario name>` for the UI scenarios (filters, demo label, chart points, city block, lists, NOT_FOUND text); verify `npx vitest run src` passes and the echo `check-scenarios` check finds every scenario.

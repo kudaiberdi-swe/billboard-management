@@ -8,10 +8,12 @@
  * @module
  */
 
+import type * as dashboard from "../dashboard.js";
 import type * as demo from "../demo.js";
 import type * as lib_analytics from "../lib/analytics.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_config from "../lib/config.js";
+import type * as lib_contacts from "../lib/contacts.js";
 import type * as lib_errors from "../lib/errors.js";
 import type * as lib_hash from "../lib/hash.js";
 import type * as lib_showLog from "../lib/showLog.js";
@@ -29,10 +31,12 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  dashboard: typeof dashboard;
   demo: typeof demo;
   "lib/analytics": typeof lib_analytics;
   "lib/auth": typeof lib_auth;
   "lib/config": typeof lib_config;
+  "lib/contacts": typeof lib_contacts;
   "lib/errors": typeof lib_errors;
   "lib/hash": typeof lib_hash;
   "lib/showLog": typeof lib_showLog;
