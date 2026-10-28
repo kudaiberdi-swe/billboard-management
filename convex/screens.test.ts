@@ -175,7 +175,7 @@ describe("screens.list", () => {
 
   test("[f03-04-billboards] filter by status", async () => {
     const { t, sessionId, screens } = await seeded();
-    const { rows } = await t.query(api.screens.list, { sessionId, status: "offline" });
+    const { rows } = await t.query(api.screens.list, { sessionId, screenStatus: "offline" });
     expect(rows.every((r) => r.status === "offline")).toBe(true);
     expect(rows).toHaveLength(screens.filter((s) => s.status === "offline").length);
   });

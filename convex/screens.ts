@@ -39,7 +39,7 @@ export const list = query({
   args: {
     sessionId: v.string(),
     city: v.optional(city),
-    status: v.optional(screenStatus),
+    screenStatus: v.optional(screenStatus), // not `status`: the base spec forbids a status arg on public functions
     camera: v.optional(v.boolean()),
     occupancyMin: v.optional(v.number()),
     occupancyMax: v.optional(v.number()),
@@ -105,7 +105,7 @@ export const list = query({
       rows: rows.filter(
         (r) =>
           (args.city === undefined || r.city === args.city) &&
-          (args.status === undefined || r.status === args.status) &&
+          (args.screenStatus === undefined || r.status === args.screenStatus) &&
           (args.camera === undefined || r.hasCamera === args.camera) &&
           (min === undefined || r.occupancyPercent >= min) &&
           (max === undefined || r.occupancyPercent <= max) &&
