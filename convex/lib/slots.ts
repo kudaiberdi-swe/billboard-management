@@ -29,7 +29,7 @@ export function isOn(c: CampaignRule, s: ScreenRule, date: DateStr, hour: number
   return c.screenIds.includes(s._id) && onDate(c, date) && onHour(c, s, hour);
 }
 
-const byCreation = (a: CampaignRule, b: CampaignRule) => a._creationTime - b._creationTime;
+const byCreation = (a: CampaignRule, b: CampaignRule) => a._creationTime - b._creationTime || a._id.localeCompare(b._id);
 
 export function hourSlots(s: ScreenRule, date: DateStr, hour: number, campaigns: CampaignRule[]): Slot[] {
   const owners: CampaignRule[] = [];

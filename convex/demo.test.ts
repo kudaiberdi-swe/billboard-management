@@ -230,13 +230,18 @@ describe("demo-access", () => {
 
   test("[base-contract] missing env password never signs in", async () => {
     const t = setup();
-    for (const env of [undefined, ""]) {
+    const short = "x".repeat(23);
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const env of [undefined, "", short]) {
       vi.stubEnv("DEMO_PASSWORD", env);
-      for (const password of ["", "anything"]) {
+      for (const password of ["", "anything", short]) {
         const sessionId = crypto.randomUUID();
         expect(await t.mutation(api.demo.signIn, { sessionId, password })).toEqual({ ok: false, code: "WRONG_PASSWORD" });
       }
     }
+    expect(log).toHaveBeenCalledWith("DEMO_PASSWORD shorter than 24 chars: sign-in disabled");
+    expect(log.mock.calls.flat().join(" ")).not.toContain(short);
+    log.mockRestore();
     expect((await load(t)).screens).toHaveLength(0);
     expect(await t.run((ctx) => ctx.db.query("demoSessions").collect())).toEqual([]);
   });
@@ -303,7 +308,7 @@ describe("demo-access", () => {
   test("[base-contract] session status reveals no data", async () => {
     const t = setup();
     await t.mutation(internal.demo.seed, {});
-    for (const sessionId of [await signedIn(t), crypto.randomUUID(), "x"]) {
+    for (const sessionId of [await signedIn(t), crypto.randomUUID(), "x", ""]) {
       expect(Object.keys(await t.query(api.demo.sessionStatus, { sessionId }))).toEqual(["valid"]);
     }
   });
@@ -386,8 +391,11 @@ describe("reset", () => {
   test("[base-contract] reset without a session", async () => {
     const t = setup();
     const { campaignId } = await withUserCampaign(t);
+    vi.useFakeTimers({ toFake: ["Date"] });
+    const expired = await signedIn(t);
+    vi.setSystemTime(Date.now() + 7 * 86_400_000);
     const counts = await tableCounts(t);
-    for (const sessionId of [crypto.randomUUID(), ""]) {
+    for (const sessionId of [crypto.randomUUID(), "", "x", expired]) {
       expect(await errorCode(t.mutation(api.demo.reset, { sessionId }))).toBe("UNAUTHENTICATED");
     }
     expect(await t.run((ctx) => ctx.db.get(campaignId))).not.toBeNull();

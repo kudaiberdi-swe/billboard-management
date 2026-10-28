@@ -5,10 +5,11 @@ import type { FunctionArgs, FunctionReference, FunctionReturnType, OptionalRestA
 import { errorCode, errorText } from "./errors";
 
 const KEY = "billboard.sessionId";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export function sessionId(): string {
   let id = localStorage.getItem(KEY);
-  if (id?.length !== 36) {
+  if (!id || !UUID.test(id)) {
     id = crypto.randomUUID();
     localStorage.setItem(KEY, id);
   }

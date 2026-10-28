@@ -20,7 +20,7 @@ The system SHALL open a demo session only when the submitted password equals the
 - **AND** `demo.sessionStatus` for that `sessionId` returns `{ valid: false }`
 
 #### Scenario: missing env password never signs in
-- **WHEN** `DEMO_PASSWORD` is not set and a visitor calls `demo.signIn` with any password, including an empty one
+- **WHEN** `DEMO_PASSWORD` is not set, empty or shorter than 24 characters and a visitor calls `demo.signIn` with any password, including an empty one or the short value itself
 - **THEN** the call returns `{ ok: false, code: "WRONG_PASSWORD" }`
 
 #### Scenario: malformed session id is rejected

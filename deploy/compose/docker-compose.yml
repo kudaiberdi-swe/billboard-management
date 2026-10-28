@@ -65,8 +65,8 @@ services:
       DISABLE_BEACON: ${DISABLE_BEACON:-true}
       DISABLE_METRICS_ENDPOINT: ${DISABLE_METRICS_ENDPOINT:-true}
       DOCUMENT_RETENTION_DELAY: ${DOCUMENT_RETENTION_DELAY:-172800}
-      # Non-empty = on (run_backend.sh). Empty on the laptop so e2e sees server errors; "1" on a public VM.
-      REDACT_LOGS_TO_CLIENT: ${REDACT_LOGS_TO_CLIENT:-}
+      # Non-empty = on (run_backend.sh). Default 1 (redacted); the laptop .env sets it empty so e2e sees server errors.
+      REDACT_LOGS_TO_CLIENT: ${REDACT_LOGS_TO_CLIENT-1}
       RUST_LOG: ${RUST_LOG:-info}
       # Query/mutation user-time limit; 1 s matches Convex Cloud. Keep it so the stack catches
       # functions that would fail in the cloud-equivalent limit.

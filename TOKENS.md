@@ -2,11 +2,11 @@
 
 Names only. Values live in `.env.local`, in the Convex deployment's environment and in the team secret store. This file is in git: anything that lands here counts as leaked and gets rotated, not deleted from a commit.
 
-A key name is written in backticks: that is how `check-tokens.mjs` finds it. Delete the sections the project does not use.
+A key name is written in backticks: that is how `check-tokens.mjs` finds it.
 
 ## Front
 
-Everything prefixed `VITE_` ships to the browser inside the bundle. Secrets do not belong here.
+Every key in this section ships to the browser inside the bundle. Secrets do not belong here.
 
 | Key | What for | Where to get it | Where it goes |
 | --- | --- | --- | --- |
@@ -18,7 +18,7 @@ Set with `npx convex env set NAME value`. On production, name the target explici
 
 | Key | What for | Where to get it | Required |
 | --- | --- | --- | --- |
-| `DEMO_PASSWORD` | shared demo password checked by `demo.signIn` (ADR-0003); unset = nobody can sign in | team: generate a long random value, share with the client | yes |
+| `DEMO_PASSWORD` | shared demo password checked by `demo.signIn` (ADR-0003); unset or shorter than 24 chars = nobody can sign in | team: at least 24 random chars; after rotating run `npx convex run demo:clearSessions`; share with the client | yes |
 
 ## Self-hosted stack
 
@@ -32,35 +32,10 @@ Only when Convex is self-hosted. Values live in the stack's env file on the host
 | `CONVEX_SELF_HOSTED_URL` | CLI target | the backend's public URL |
 | `CONVEX_SELF_HOSTED_ADMIN_KEY` | CLI admin access | `generate_admin_key.sh` inside the backend container |
 
-## Model
+## E2E
 
-Only when the project calls Azure models (via the `azure-echo` skill).
-
-| Key | What for | Where to get it |
-| --- | --- | --- |
-| `AZURE_OPENAI_API_KEY` | model output | Azure portal, the resource's Keys page |
-| `AZURE_OPENAI_RESOURCE_NAME` | the base URL is derived from it | the Azure resource name |
-| `AZURE_OPENAI_API_VERSION` | pins the API surface | Azure OpenAI documentation |
-
-## Stand only
-
-| Key | What for | Fuse |
-| --- | --- | --- |
-| `DEV_IDENTITY_KEY` | the agent's identity: open any page as any role | has no effect outside a dev deployment, and the caller must present its value; its absence in production is checked by a gate |
-
-## Demo accounts
-
-Passwords of the demo accounts of the test stack and the stand. Synthetic data only. Never production accounts.
+Synthetic data only. Never production accounts.
 
 | Key | What for | Where the value may appear |
 | --- | --- | --- |
-| `E2E_DEMO_PASSWORD` | the shared demo password (same value as `DEMO_PASSWORD`) typed by the e2e smoke test into the password screen | `.env.local` only |
-| `DEMO_<ROLE>_PASSWORD` | password of the demo account of one role; add one row per role, for example DEMO_ADMIN_PASSWORD. Prefer `[A-Za-z0-9]` only; in `.env` write a value with `#`, quotes or edge spaces in single quotes | `docs/ACCESS.md` (Test section; the stand uses the same seed accounts) and the Access section of the Linear issue description; never in a Linear comment; nowhere else |
-
-## Not issued yet
-
-Rows for keys nobody has handed over. In this state the product must say honestly that the capability is absent rather than show a button to nowhere.
-
-| Key | Why it is needed | Who to ask | What the product does without it |
-| --- | --- | --- | --- |
-| `<KEY_NAME>` | <why> | <name, role> | <honest behaviour: section hidden, 503 response, "not connected yet"> |
+| `E2E_DEMO_PASSWORD` | the shared demo password (same value as `DEMO_PASSWORD`, so also 24+ chars) typed by the e2e smoke test into the password screen | `.env.local` only |

@@ -10,6 +10,7 @@ import { seedData } from "./seed";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_PASSWORD = 200;
+const MIN_ENV_PASSWORD = 24;
 const DOMAIN_TABLES = ["showLog", "screenEvents", "campaigns", "screens"] as const;
 
 /** Constant-time compare: the time depends only on the lengths, never on where the strings differ. */
@@ -27,11 +28,15 @@ export const signIn = mutation({
     v.object({ ok: v.literal(false), code: v.literal("WRONG_PASSWORD") }),
   ),
   handler: async (ctx, { sessionId, password }) => {
-    if (sessionId.length !== 36 || !UUID.test(sessionId)) fail("INVALID_INPUT", { field: "sessionId" });
+    if (!UUID.test(sessionId)) fail("INVALID_INPUT", { field: "sessionId" });
     await enforceRateLimit(ctx, "signIn", sessionId);
     const expected = process.env.DEMO_PASSWORD ?? "";
-    // Unset or empty env never matches; the password is never logged or returned.
-    if (expected === "" || password.length > MAX_PASSWORD || !sameText(password, expected)) {
+    // Unset, empty or short env never matches; the password is never logged or returned (length only).
+    if (expected.length < MIN_ENV_PASSWORD) {
+      if (expected !== "") console.error(`DEMO_PASSWORD shorter than ${MIN_ENV_PASSWORD} chars: sign-in disabled`);
+      return { ok: false as const, code: "WRONG_PASSWORD" as const };
+    }
+    if (password.length > MAX_PASSWORD || !sameText(password, expected)) {
       return { ok: false as const, code: "WRONG_PASSWORD" as const };
     }
     const expiresAt = Date.now() + SESSION_DAYS * 86_400_000;
@@ -65,7 +70,7 @@ export const reset = mutation({
   returns: v.null(),
   handler: async (ctx, { sessionId }) => {
     await requireActor(ctx, sessionId);
-    // shortcut: whole-table scans in one transaction; fine for the demo size (ADR-0006: ~100 screens, a few hundred log rows).
+    // shortcut: deletes all showLog in one transaction; fine at seed size (ADR-0006: ~100 screens, a few hundred log rows) — F-10 must cap the simulated period or batch deletes.
     for (const c of await ctx.db.query("campaigns").collect()) {
       if (c.creative.kind === "video") await ctx.storage.delete(c.creative.storageId);
     }
