@@ -189,4 +189,33 @@ export const ru = {
     slotsUsed: "Занято {used} из 12",
     cycleTitle: "Минутный цикл",
   },
+  // f09-reports design «Strings»: disclaimer, print, placement, screenAnalytics SoW verbatim; glossary terms §10.1; the rest team copy.
+  reports: {
+    disclaimer: "Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват",
+    print: "Печать / сохранить в PDF",
+    placement: "Результаты размещения",
+    screenAnalytics: "Аналитика экранов",
+    planned: "Запланированные показы",
+    log: "Показы по журналу",
+    completion: "Процент выполнения плана",
+    traffic: "Трафик у экранов за период",
+    looks: "Взгляды на экран",
+    contacts: "Оценочные контакты с кампанией",
+    campaign: "Кампания",
+    period: "Период",
+    city: "Город",
+    screen: "Билборд",
+    allCities: "Все города",
+    allScreens: "Все билборды",
+    selectCampaign: "Выберите кампанию",
+    advertiser: "Рекламодатель",
+    cities: "Города",
+    screens: "Экраны",
+    byDay: "Показы по дням",
+    byScreen: "Распределение по экранам",
+    noCamera: "Экранов без камеры: {count} (нет камеры)",
+    noPlan: "—",
+    percent: "{value} %", // team
+    date: "Дата", // team: column of the chart's table view
+  },
 };
