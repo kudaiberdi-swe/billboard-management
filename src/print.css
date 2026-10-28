@@ -1,0 +1,10 @@
+/* Print rules (ADR-0010). F-9 extends this file. */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  /* the hidden menu leaves no gap on paper */
+  :root {
+    --app-shell-navbar-offset: 0px !important;
+  }
+}

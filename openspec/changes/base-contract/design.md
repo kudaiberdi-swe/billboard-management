@@ -105,7 +105,7 @@ export async function requireActor(ctx: QueryCtx | MutationCtx, sessionId: strin
 - Looks up `demoSessions.by_sessionId`; throws `ConvexError({ code: "UNAUTHENTICATED" })` when the row is missing or `expiresAt <= Date.now()`.
 - Every public `query` and `mutation` has `sessionId: v.string()` in its args and calls `requireActor` first. Exceptions: `demo.signIn` (checks the password) and `demo.sessionStatus` (calls `requireActor` inside a try and returns only `{ valid }`). Internal functions need no session. Phase 1 has no public actions; a future action calls an internal query that runs `requireActor`.
 - `auth.ts` is the only file in `convex/lib/` that takes `ctx`; the front never imports it.
-- Password check: `demo.signIn` compares the argument with `process.env.DEMO_PASSWORD` in constant time. Unset or empty env never matches. The password is never logged or returned.
+- Password check: `demo.signIn` compares the argument with `process.env.DEMO_PASSWORD` in constant time. Unset, empty or shorter than 24 chars env never matches; a short value logs `DEMO_PASSWORD shorter than 24 chars: sign-in disabled` (length only, never the value). The password is never logged or returned.
 - Sign-in is rate-limited (D3a). `demo.signIn` returns `{ ok: false, code: "WRONG_PASSWORD" }` instead of throwing, so the consumed attempt commits (a throw would roll the consumption back).
 - Front transport: `src/session.ts` keeps `sessionId` in `localStorage` key `billboard.sessionId` (made with `crypto.randomUUID()` on first load) and wraps `useQuery` / `useMutation` as `useGuardedQuery(fn, args | "skip")` and `useGuardedMutation(fn)`, which add `sessionId` to every call. Feature screens use only these wrappers.
 

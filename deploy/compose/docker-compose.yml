@@ -1,0 +1,154 @@
+# Self-hosted Convex stack: Postgres + Convex backend + dashboard, optional Caddy (HTTPS).
+#
+# One compose file for every place the stack runs (shared laptop stack, test VM,
+# production VM). Only the env file differs. Copy .env.example to .env (gitignored,
+# mode 600) and fill it in. README.md has the commands.
+#
+# Start:  docker compose -p <project> --env-file .env -f docker-compose.yml up -d --wait
+# HTTPS:  add `--profile https` on a public VM (Caddy in front; see Caddyfile).
+#
+# Images are pinned. To upgrade: back up first, then change CONVEX_BACKEND_TAG and
+# CONVEX_DASHBOARD_TAG together to the same release tag.
+
+x-convex-image-tags:
+  # get-convex/convex-backend release precompiled-2026-10-07-5e677d7
+  backend: &backend-image ghcr.io/convex/convex-backend:${CONVEX_BACKEND_TAG:-5e677d76314a1bab5d0f70816e6dda8d5e824794}
+  dashboard: &dashboard-image ghcr.io/convex/convex-dashboard:${CONVEX_DASHBOARD_TAG:-5e677d76314a1bab5d0f70816e6dda8d5e824794}
+
+services:
+  postgres:
+    image: postgres:17.11-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-convex}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      # The backend persists into the database named after INSTANCE_NAME ("-" -> "_").
+      POSTGRES_DB: ${POSTGRES_DB:-convex_self_hosted}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      # Only for psql / pg_dump from the host; loopback by default.
+      - "${BIND_ADDRESS:-127.0.0.1}:${POSTGRES_HOST_PORT:-5442}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  backend:
+    image: *backend-image
+    restart: unless-stopped
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      # Modules, file storage, search indexes, exports (Postgres holds the documents).
+      - convexdata:/convex/data
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${BACKEND_HOST_PORT:-3410}:3210"
+      - "${BIND_ADDRESS:-127.0.0.1}:${SITE_HOST_PORT:-3411}:3211"
+    environment:
+      INSTANCE_NAME: ${INSTANCE_NAME:-convex-self-hosted}
+      INSTANCE_SECRET: ${INSTANCE_SECRET:?set INSTANCE_SECRET in .env}
+      # Connection string WITHOUT the database name (official self-hosting docs).
+      # Default: the bundled postgres service. Managed Postgres: set POSTGRES_URL in .env.
+      POSTGRES_URL: ${POSTGRES_URL:-postgresql://${POSTGRES_USER:-convex}:${POSTGRES_PASSWORD}@postgres:5432}
+      # Bundled postgres is on the private compose network without TLS. run_backend.sh treats ANY
+      # non-empty value as "on": set it to an empty value (DO_NOT_REQUIRE_SSL=) for a managed DB with TLS.
+      DO_NOT_REQUIRE_SSL: ${DO_NOT_REQUIRE_SSL-1}
+      # Public origins the backend advertises (clients, auth issuer = CONVEX_SITE_ORIGIN).
+      CONVEX_CLOUD_ORIGIN: ${CONVEX_CLOUD_ORIGIN:-http://127.0.0.1:${BACKEND_HOST_PORT:-3410}}
+      CONVEX_SITE_ORIGIN: ${CONVEX_SITE_ORIGIN:-http://127.0.0.1:${SITE_HOST_PORT:-3411}}
+      DISABLE_BEACON: ${DISABLE_BEACON:-true}
+      DISABLE_METRICS_ENDPOINT: ${DISABLE_METRICS_ENDPOINT:-true}
+      DOCUMENT_RETENTION_DELAY: ${DOCUMENT_RETENTION_DELAY:-172800}
+      # Non-empty = on (run_backend.sh). Default 1 (redacted); the laptop .env sets it empty so e2e sees server errors.
+      REDACT_LOGS_TO_CLIENT: ${REDACT_LOGS_TO_CLIENT-1}
+      RUST_LOG: ${RUST_LOG:-info}
+      # Query/mutation user-time limit; 1 s matches Convex Cloud. Keep it so the stack catches
+      # functions that would fail in the cloud-equivalent limit.
+      DATABASE_UDF_USER_TIMEOUT_SECONDS: ${DATABASE_UDF_USER_TIMEOUT_SECONDS:-1}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3210/version || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: "50m", max-file: "10" }
+
+  # The backend calls its own public origins from inside the container (Convex Auth discovers
+  # the JWT issuer at CONVEX_SITE_ORIGIN/.well-known/...). Inside the container it listens on
+  # 3210/3211, so when the host ports differ (laptop: 3410/3411) 127.0.0.1:<host port> would be
+  # closed there. This sidecar shares the backend's network namespace and forwards the host-port
+  # numbers to the real ports. Harmless on a public VM (origins are HTTPS domains there).
+  loopback:
+    image: alpine/socat:1.8.0.3
+    restart: unless-stopped
+    network_mode: "service:backend"
+    depends_on:
+      backend:
+        condition: service_started
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        socat TCP-LISTEN:${SITE_HOST_PORT:-3411},bind=127.0.0.1,fork,reuseaddr TCP:127.0.0.1:3211 &
+        socat TCP-LISTEN:${BACKEND_HOST_PORT:-3410},bind=127.0.0.1,fork,reuseaddr TCP:127.0.0.1:3210 &
+        wait
+    healthcheck:
+      test: ["CMD-SHELL", "socat -u /dev/null TCP:127.0.0.1:${SITE_HOST_PORT:-3411} && socat -u /dev/null TCP:127.0.0.1:${BACKEND_HOST_PORT:-3410}"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+
+  dashboard:
+    image: *dashboard-image
+    restart: unless-stopped
+    stop_grace_period: 10s
+    stop_signal: SIGINT
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${DASHBOARD_HOST_PORT:-6792}:6791"
+    environment:
+      # The URL the operator's BROWSER uses to reach the backend.
+      NEXT_PUBLIC_DEPLOYMENT_URL: ${DASHBOARD_DEPLOYMENT_URL:-http://127.0.0.1:${BACKEND_HOST_PORT:-3410}}
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:6791').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))\""]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+
+  # HTTPS front for a public VM. Disabled unless `--profile https`.
+  caddy:
+    image: caddy:2.11.7-alpine
+    profiles: ["https"]
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:80:80"
+      - "${HTTPS_BIND_ADDRESS:-0.0.0.0}:443:443"
+    environment:
+      CONVEX_API_DOMAIN: ${CONVEX_API_DOMAIN:-}
+      CONVEX_SITE_DOMAIN: ${CONVEX_SITE_DOMAIN:-}
+      CONVEX_DASHBOARD_DOMAIN: ${CONVEX_DASHBOARD_DOMAIN:-}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+      - caddyconfig:/config
+
+volumes:
+  pgdata:
+  convexdata:
+  caddydata:
+  caddyconfig:

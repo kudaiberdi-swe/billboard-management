@@ -1,0 +1,20 @@
+# HTTPS front for a public VM (compose profile `https`). TLS via ACME (Let's Encrypt) for the
+# three hostnames in .env. Caddy only proxies; it holds no application data.
+{
+	email {$ACME_EMAIL}
+}
+
+# Convex client API + WebSocket sync (CONVEX_CLOUD_ORIGIN = https://{$CONVEX_API_DOMAIN})
+{$CONVEX_API_DOMAIN} {
+	reverse_proxy backend:3210
+}
+
+# Convex HTTP actions, incl. Convex Auth endpoints (CONVEX_SITE_ORIGIN = https://{$CONVEX_SITE_DOMAIN})
+{$CONVEX_SITE_DOMAIN} {
+	reverse_proxy backend:3211
+}
+
+# Dashboard. Restrict it (IP allowlist or basic auth) before you expose it: the admin key is its only login.
+{$CONVEX_DASHBOARD_DOMAIN} {
+	reverse_proxy dashboard:6791
+}
