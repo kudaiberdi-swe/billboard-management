@@ -36,3 +36,5 @@ export const THUMB_WIDTH = 72;
 export const CARD_IMAGE_WIDTH = 320;
 /** Hour column of the card schedule, px wide. */
 export const HOUR_COLUMN_WIDTH = 112;
+/** Audience chart series: people in a light step of the accent, looks in its full shade. */
+export const AUDIENCE_SERIES_COLOR = { people: "indigo.3", looks: "indigo.7" } as const;
