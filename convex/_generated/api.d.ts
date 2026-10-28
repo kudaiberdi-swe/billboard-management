@@ -23,6 +23,7 @@ import type * as lib_slots from "../lib/slots.js";
 import type * as lib_status from "../lib/status.js";
 import type * as lib_time from "../lib/time.js";
 import type * as rateLimits from "../rateLimits.js";
+import type * as schedule from "../schedule.js";
 import type * as screens from "../screens.js";
 import type * as seed from "../seed.js";
 
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   "lib/status": typeof lib_status;
   "lib/time": typeof lib_time;
   rateLimits: typeof rateLimits;
+  schedule: typeof schedule;
   screens: typeof screens;
   seed: typeof seed;
 }>;

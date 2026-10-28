@@ -177,4 +177,16 @@ export const ru = {
     andMore: "и другие",
     uploading: "Загрузка видео…",
   },
+  schedule: {
+    // f07-schedule; slotTime from SoW 4.7.3, the rest team copy
+    slotTime: "{from}–{to} сек.",
+    city: "Город",
+    allCities: "Все",
+    billboard: "Билборд",
+    date: "Дата",
+    selectBillboard: "Выберите билборд, чтобы увидеть расписание",
+    hourRange: "{from}–{to}",
+    slotsUsed: "Занято {used} из 12",
+    cycleTitle: "Минутный цикл",
+  },
 };
