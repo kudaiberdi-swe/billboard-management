@@ -30,3 +30,5 @@ docs/recon/raw/
 *.aab
 *.log
 .DS_Store
+
+.echo/security-audit/
