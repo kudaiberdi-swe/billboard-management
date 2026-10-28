@@ -55,4 +55,29 @@ export const ru = {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
   },
+  // f02-dashboard design «Strings»: team copy except the SoW glossary terms and filter names.
+  dashboard: {
+    filterPeriod: "Период",
+    filterCity: "Город",
+    filterBillboard: "Билборд",
+    allCities: "Все города",
+    allBillboards: "Все билборды",
+    screens: "Экраны в сети",
+    online: "Онлайн",
+    offline: "Офлайн",
+    activeCampaigns: "Активные кампании",
+    occupancy: "Занятость рекламного инвентаря, %",
+    plannedShows: "Запланированные показы",
+    logShows: "Показы по журналу",
+    contacts: "Оценочные контакты с аудиторией",
+    looks: "Взгляды на экран",
+    occupancyChart: "Занятость по дням",
+    screensByCity: "Экраны по городам",
+    activeList: "Активные кампании",
+    endsOn: "до {date}",
+    notificationsTitle: "Уведомления",
+    noNotifications: "Нет уведомлений",
+    chartDate: "Дата", // team: column of the chart's table view
+    noActive: "Нет активных кампаний", // team: empty state of the active campaigns list
+  },
 };

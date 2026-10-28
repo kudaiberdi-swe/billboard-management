@@ -7,6 +7,7 @@ import { BrowserRouter } from "react-router-dom";
 import "dayjs/locale/ru";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
+import "@mantine/charts/styles.css";
 import "./print.css";
 import { Gate } from "./shell/Gate";
 import { theme } from "./theme";
