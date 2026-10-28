@@ -8,10 +8,13 @@ import { useGuardedMutation, useSubmit } from "../session";
 import { NAVBAR_WIDTH } from "../theme";
 import { Analytics } from "../routes/Analytics";
 import { Billboards } from "../routes/Billboards";
+import { BillboardCard } from "../routes/billboards/BillboardCard";
 import { Campaigns } from "../routes/Campaigns";
+import { CampaignCard } from "../routes/campaigns/CampaignCard";
 import { Home } from "../routes/Home";
 import { Reports } from "../routes/Reports";
 import { Schedule } from "../routes/Schedule";
+import { NewCampaign } from "../routes/campaigns/NewCampaign";
 
 const SECTIONS: { path: string; label: StringsKey; Page: () => React.JSX.Element }[] = [
   { path: "/", label: "routes.home", Page: Home },
@@ -49,6 +52,9 @@ export function AppShell() {
           {SECTIONS.map(({ path, Page }) => (
             <Route key={path} path={path} element={<Page />} />
           ))}
+          <Route path="/billboards/:id" element={<BillboardCard />} />
+          <Route path="/campaigns/:id" element={<CampaignCard />} />
+          <Route path="/campaigns/new" element={<NewCampaign />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </MantineAppShell.Main>

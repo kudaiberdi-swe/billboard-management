@@ -18,3 +18,21 @@ export const DEMO_COLOR = "orange";
 export const NAVBAR_WIDTH = 248;
 /** Password form width, px. */
 export const LOGIN_WIDTH = 360;
+/** Height of a chart plot, px. */
+export const CHART_HEIGHT = 240;
+/** Date shown to the user (dayjs format). */
+export const DATE_FORMAT = "DD.MM.YYYY";
+/** Numbers are shown with Russian digit grouping and decimal comma. */
+export const NUMBER_LOCALE = "ru-RU";
+/** Screen status badge colours (online / offline). */
+export const SCREEN_STATUS_COLOR = { online: "teal", offline: "red" } as const;
+/** Campaign status badge colours. */
+export const CAMPAIGN_STATUS_COLOR = { planned: "blue", active: "teal", finished: "gray" } as const;
+/** Map of screens height, px. */
+export const MAP_HEIGHT = 360;
+/** Screen image in a list row, px wide. */
+export const THUMB_WIDTH = 72;
+/** Screen image on the billboard card, px wide. */
+export const CARD_IMAGE_WIDTH = 320;
+/** Hour column of the card schedule, px wide. */
+export const HOUR_COLUMN_WIDTH = 112;

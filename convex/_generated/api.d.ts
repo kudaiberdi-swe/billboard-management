@@ -8,10 +8,14 @@
  * @module
  */
 
+import type * as campaigns from "../campaigns.js";
+import type * as crons from "../crons.js";
+import type * as dashboard from "../dashboard.js";
 import type * as demo from "../demo.js";
 import type * as lib_analytics from "../lib/analytics.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_config from "../lib/config.js";
+import type * as lib_contacts from "../lib/contacts.js";
 import type * as lib_errors from "../lib/errors.js";
 import type * as lib_hash from "../lib/hash.js";
 import type * as lib_showLog from "../lib/showLog.js";
@@ -19,6 +23,7 @@ import type * as lib_slots from "../lib/slots.js";
 import type * as lib_status from "../lib/status.js";
 import type * as lib_time from "../lib/time.js";
 import type * as rateLimits from "../rateLimits.js";
+import type * as schedule from "../schedule.js";
 import type * as screens from "../screens.js";
 import type * as seed from "../seed.js";
 
@@ -29,10 +34,14 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  campaigns: typeof campaigns;
+  crons: typeof crons;
+  dashboard: typeof dashboard;
   demo: typeof demo;
   "lib/analytics": typeof lib_analytics;
   "lib/auth": typeof lib_auth;
   "lib/config": typeof lib_config;
+  "lib/contacts": typeof lib_contacts;
   "lib/errors": typeof lib_errors;
   "lib/hash": typeof lib_hash;
   "lib/showLog": typeof lib_showLog;
@@ -40,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   "lib/status": typeof lib_status;
   "lib/time": typeof lib_time;
   rateLimits: typeof rateLimits;
+  schedule: typeof schedule;
   screens: typeof screens;
   seed: typeof seed;
 }>;
