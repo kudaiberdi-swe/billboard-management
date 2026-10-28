@@ -55,4 +55,51 @@ export const ru = {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
   },
+  // f03-04-billboards design "Strings" (team copy); «Билборды» is routes.billboards, «нет камеры» is OQ-3.
+  billboards: {
+    colName: "Название",
+    colLocation: "Город и адрес",
+    colImage: "Фото",
+    colStatus: "Статус",
+    colHours: "Режим работы",
+    colOccupancy: "Занятость, %",
+    colActiveCampaigns: "Активные кампании",
+    colCamera: "Камера",
+    colAudience: "Аудитория за период",
+    cameraYes: "есть",
+    cameraNo: "нет",
+    noCamera: "нет камеры",
+    period: "Период: {from} – {to}",
+    filterCity: "Город",
+    filterStatus: "Статус",
+    filterCamera: "Камера",
+    filterOccupancy: "Занятость, %",
+    occupancyFrom: "Занятость от, %", // team: accessible name of the lower range thumb
+    occupancyTo: "Занятость до, %", // team: accessible name of the upper range thumb
+    search: "Поиск по названию или адресу",
+    all: "Все",
+    empty: "Ничего не найдено",
+    mapUnavailable: "Карта недоступна. Список работает.",
+    roundTheClock: "Круглосуточно",
+    hoursRange: "{from}–{to}",
+    percent: "{value} %", // team
+    location: "Расположение",
+    occupancyToday: "Занятость сегодня",
+    campaigns: "Кампании на экране",
+    noCampaigns: "Кампаний нет",
+    colCampaign: "Кампания", // team: card campaign table headers (spec "Assigned campaigns")
+    colAdvertiser: "Рекламодатель",
+    colPeriod: "Период",
+    colShowHours: "Часы показа",
+    colSlots: "Слотов за цикл",
+    scheduleToday: "Расписание на сегодня",
+    slotsUsed: "{used} из 12 слотов",
+    audience: "Аудитория за 7 дней",
+    people: "Люди в зоне видимости",
+    looks: "Взгляды на экран",
+    vehicles: "Транспорт",
+    events: "Последние события",
+    noEvents: "Событий нет",
+    backToList: "К списку билбордов",
+  },
 };

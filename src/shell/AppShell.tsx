@@ -8,6 +8,7 @@ import { useGuardedMutation, useSubmit } from "../session";
 import { NAVBAR_WIDTH } from "../theme";
 import { Analytics } from "../routes/Analytics";
 import { Billboards } from "../routes/Billboards";
+import { BillboardCard } from "../routes/billboards/BillboardCard";
 import { Campaigns } from "../routes/Campaigns";
 import { Home } from "../routes/Home";
 import { Reports } from "../routes/Reports";
@@ -49,6 +50,7 @@ export function AppShell() {
           {SECTIONS.map(({ path, Page }) => (
             <Route key={path} path={path} element={<Page />} />
           ))}
+          <Route path="/billboards/:id" element={<BillboardCard />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </MantineAppShell.Main>
