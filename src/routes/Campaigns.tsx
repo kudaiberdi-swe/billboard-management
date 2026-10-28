@@ -1,4 +1,4 @@
-import { Anchor, Group, Loader, Stack, Table, Text, Title } from "@mantine/core";
+import { Anchor, Button, Group, Loader, Stack, Table, Text, Title } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import { t } from "../../shared/strings";
@@ -13,7 +13,11 @@ export function Campaigns() {
     <Stack>
       <Group justify="space-between">
         <Title order={1}>{t("ru", "routes.campaigns")}</Title>
-        <DemoLabel />
+        <Group>
+          <DemoLabel />
+          {/* fde-echo:allow-dead f06-campaign-create link button: component={Link} opens the campaign form */}
+          <Button component={Link} to="/campaigns/new">{t("ru", "campaignForm.create")}</Button>
+        </Group>
       </Group>
       {rows === undefined ? (
         <Loader aria-label={t("ru", "common.loading")} />

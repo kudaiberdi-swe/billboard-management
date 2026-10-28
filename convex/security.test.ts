@@ -51,6 +51,15 @@ const bucketOk = (t: T, sessionId = SESSION) =>
 
 const CASES: Array<{ fn: string; limit: LimitName; call: (t: T) => Promise<unknown>; prepare?: (t: T) => Promise<T> }> = [
   { fn: "demo.signIn", limit: "signInPerAccount", call: (t) => wrong(t) },
+  {
+    fn: "campaigns.generateUploadUrl",
+    limit: "uploadUrlPerUser",
+    call: (t) => t.mutation(api.campaigns.generateUploadUrl, { sessionId: SESSION }),
+    prepare: async (t) => {
+      await t.mutation(api.demo.signIn, { sessionId: SESSION, password: PASSWORD });
+      return t;
+    },
+  },
 ];
 
 test("[security] every sensitive flow has a case", () => {
