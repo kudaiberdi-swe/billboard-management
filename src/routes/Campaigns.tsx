@@ -6,7 +6,7 @@ import { DemoLabel } from "../components/DemoLabel";
 import { LogShows } from "../components/LogShows";
 import { formatNumber, formatPeriod } from "../format";
 import { useGuardedQuery } from "../session";
-import { CAMPAIGN_STATUS_COLOR, TABLE_MIN_WIDTH } from "../theme";
+import { CAMPAIGN_STATUS_COLOR, NAME_COLUMN_WIDTH, TABLE_MIN_WIDTH } from "../theme";
 
 const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 const FULL_LABEL = { label: { overflow: "visible", textOverflow: "clip" } } as const;
@@ -49,13 +49,13 @@ export function Campaigns() {
             <Table.Tbody>
               {rows.map((c) => (
                 <Table.Tr key={c._id}>
-                  <Table.Td style={{ whiteSpace: "nowrap" }}>
-                    <Anchor component={Link} to={`/campaigns/${c._id}`}>
+                  <Table.Td miw={NAME_COLUMN_WIDTH}>
+                    <Anchor component={Link} to={`/campaigns/${c._id}`} fz="sm">
                       {c.name}
                     </Anchor>
                   </Table.Td>
                   <Table.Td>{c.advertiser}</Table.Td>
-                  <Table.Td style={{ ...NUMERIC, whiteSpace: "nowrap" }}>{formatPeriod(c.startDate, c.endDate)}</Table.Td>
+                  <Table.Td style={NUMERIC}>{formatPeriod(c.startDate, c.endDate)}</Table.Td>
                   <Table.Td>{c.cities.map((x) => t("ru", `cities.${x}`)).join(", ")}</Table.Td>
                   <Table.Td ta="right" style={NUMERIC}>
                     {formatNumber(c.screenCount)}

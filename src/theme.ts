@@ -78,6 +78,8 @@ export const AUDIENCE_SERIES_COLOR = { people: "indigo.3", looks: "indigo.7" } a
 export const HOUR_AXIS_INTERVAL = 1;
 /** Day axis of a chart: at most this many date labels, at a regular step. */
 export const DAY_AXIS_TICKS = 16;
+/** Name column of the campaign list: a usual name stays on one line, a longer one wraps, px. */
+export const NAME_COLUMN_WIDTH = 180;
 /** A wide table keeps at least this width, px; a narrower window scrolls the table, not the page. */
 export const TABLE_MIN_WIDTH = 960;
 /** Frame of the selected choice card: the accent, not colour alone (the radio role carries aria-checked). */

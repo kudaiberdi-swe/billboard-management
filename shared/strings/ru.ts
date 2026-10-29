@@ -56,7 +56,7 @@ export const ru = {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
     percent: "{value}\u00a0%", // team: every percent value (no-break space before the sign)
-    period: "{from} – {to}", // team: a date range
+    period: "{from}\u00a0– {to}", // team: a date range; the no-break space keeps the dash off the start of a line
     signOut: "Выйти", // team: ends the demo session in this browser
     retry: "Повторить", // team: runs a failed request again
     // team: screen count by the ru plural rules

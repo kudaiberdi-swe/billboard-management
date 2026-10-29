@@ -93,7 +93,7 @@ const rowNameOpensTheCard = () => {
   open("/campaigns");
   const row = screen.getByRole("link", { name: "Летняя акция" }).closest("tr")!;
   for (const text of ["Demo Cola", "18.10.2026 – 17.11.2026", "Астана, Караганда", "Активна"]) {
-    expect(row.textContent).toContain(text);
+    expect(row.textContent!.replace(/\s/g, " ")).toContain(text); // the period keeps a no-break space before its dash
   }
   fireEvent.click(screen.getByRole("link", { name: "Летняя акция" }));
   expect(screen.getByTestId("path").textContent).toBe("/campaigns/c1");
