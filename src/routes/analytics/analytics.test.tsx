@@ -10,7 +10,7 @@ import { ConvexError } from "convex/values";
 import { addDays, kzNow } from "../../../convex/lib/time";
 import { convex } from "../../test/fakeConvex";
 import { theme } from "../../theme";
-import { Analytics } from "../Analytics";
+import { AppShell } from "../../shell/AppShell";
 
 vi.mock("convex/react", () => import("../../test/fakeConvex"));
 
@@ -75,7 +75,7 @@ function open(path = "/analytics") {
     <MantineProvider theme={theme} env="test">
       <DatesProvider settings={{ locale: "ru" }}>
         <MemoryRouter initialEntries={[path]}>
-          <Analytics />
+          <AppShell />
           <Where />
         </MemoryRouter>
       </DatesProvider>
@@ -88,6 +88,7 @@ const value = (name: string) => within(card(name)).getAllByText(/\d/)[0].textCon
 const region = (name: string) => screen.getByRole("region", { name });
 const lastArgs = () => (convex.calls["analytics:screenPeriod"] ?? []).at(-1) as Record<string, unknown>;
 const DEMO = "Демонстрационные данные";
+const NOTICE = "Все показатели — демонстрационные данные";
 const n = (x: number) => x.toLocaleString("ru-RU");
 
 test("[f08-audience-analytics] screen period values", () => {
@@ -214,12 +215,17 @@ test("[f08-audience-analytics] no personal data", () => {
   }
 });
 
-test("[f08-audience-analytics] all values carry the demo label", () => {
+test("[c01-global-demo-notice] audience values carry no demo label", () => {
   open();
   for (const name of ["Трафик: люди в зоне наблюдения", "Трафик: транспорт", "Взгляды на экран", "Доля взглядов среди людей с оценённым направлением взгляда"]) {
-    expect(within(card(name)).getByText(DEMO)).toBeTruthy();
+    expect(within(card(name)).queryByText(DEMO)).toBeNull();
   }
   for (const name of ["Аудитория и взгляды по часам", "Возраст (предположительно)", "Пол (предположительно)"]) {
-    expect(within(region(name)).getByText(DEMO)).toBeTruthy();
+    expect(within(region(name)).queryByText(DEMO)).toBeNull();
+  }
+  expect(screen.queryByText(DEMO)).toBeNull();
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
+  for (const name of ["Возраст (предположительно)", "Пол (предположительно)"]) {
+    expect(within(region(name)).getByText("Возраст и пол — оценка алгоритма, не точные данные.")).toBeTruthy();
   }
 });

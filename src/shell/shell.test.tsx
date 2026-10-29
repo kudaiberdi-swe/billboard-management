@@ -1,10 +1,9 @@
 import { useSyncExternalStore } from "react";
 import { beforeEach, expect, test, vi, type Mock } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import { MemoryRouter, useLocation } from "react-router-dom";
 import { ConvexError } from "convex/values";
-import { DemoLabel } from "../components/DemoLabel";
 import { theme } from "../theme";
 import { Gate } from "./Gate";
 
@@ -209,11 +208,43 @@ test("[predeploy] a failed session check offers a retry instead of a blank page"
   quiet.mockRestore();
 });
 
-test("[base-contract] demo label shows the verbatim text", () => {
-  render(
-    <MantineProvider theme={theme}>
-      <DemoLabel />
-    </MantineProvider>,
-  );
-  expect(screen.getByText("Демонстрационные данные").textContent).toBe("Демонстрационные данные");
+const NOTICE = "Все показатели — демонстрационные данные";
+const SIGNED_IN = ["/", "/billboards", "/campaigns", "/schedule", "/analytics", "/reports", "/billboards/s1", "/campaigns/c1", "/campaigns/new"];
+
+test("[c01-global-demo-notice] notice shows the verbatim text", () => {
+  open("/");
+  expect(screen.getByRole("note").textContent).toBe(NOTICE);
+});
+
+test("[c01-global-demo-notice] notice shows once on every signed-in page", () => {
+  for (const route of SIGNED_IN) {
+    open(route);
+    expect(path(), route).toBe(route);
+    const notices = screen.getAllByText(NOTICE);
+    expect(notices, route).toHaveLength(1);
+    // above the page content: the first thing in the content area
+    expect(screen.getByRole("main").firstElementChild, route).toBe(notices[0]);
+    cleanup();
+  }
+});
+
+test("[c01-global-demo-notice] password screen has no notice", () => {
+  convex.set("demo:sessionStatus", { valid: false });
+  for (const route of ["/", "/campaigns", "/reports", "/login"]) {
+    open(route);
+    expect(path()).toBe("/login");
+    expect(screen.queryByText(NOTICE)).toBeNull();
+    expect(screen.queryByText(/демонстрационн/i)).toBeNull();
+    cleanup();
+  }
+});
+
+test("[c01-global-demo-notice] no per-value demo label", () => {
+  for (const route of SIGNED_IN) {
+    open(route);
+    expect(screen.queryByText("Демонстрационные данные"), route).toBeNull();
+    // the only demonstration-data text on the page is the notice (the report disclaimer is checked in reports.test.tsx)
+    expect(screen.getAllByText(/демонстрационн/i), route).toEqual([screen.getByText(NOTICE)]);
+    cleanup();
+  }
 });

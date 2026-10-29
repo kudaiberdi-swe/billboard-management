@@ -76,7 +76,9 @@ async function choose(label: string, option: string) {
   fireEvent.click(await screen.findByRole("option", { name: option, hidden: true }));
 }
 
-test("[f03-04-billboards] list row shows every required field", async () => {
+const NOTICE = "Все показатели — демонстрационные данные";
+
+const listRowShowsEveryRequiredField = async () => {
   open("/billboards");
   const row = within((await screen.findByRole("link", { name: "Экран Астана 1" })).closest("tr")!);
   expect(row.getByRole("img", { name: "Экран Астана 1" }).getAttribute("src")).toBe("/demo/screens/screen-1.svg");
@@ -85,9 +87,13 @@ test("[f03-04-billboards] list row shows every required field", async () => {
   }
   expect(within(rowOf("Экран Караганда 1")).getByText("офлайн")).toBeTruthy();
   expect(within(rowOf("Экран Караганда 1")).getByText("Круглосуточно")).toBeTruthy();
-  expect(screen.getByText("Демонстрационные данные")).toBeTruthy();
   expect(screen.getByText("Период: 22.10.2026 – 28.10.2026")).toBeTruthy();
-});
+  // c01: no per-value label; the shell's global notice marks the audience column
+  expect(screen.queryByText("Демонстрационные данные")).toBeNull();
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
+};
+test("[f03-04-billboards] list row shows every required field", listRowShowsEveryRequiredField);
+test("[c01-global-demo-notice] list row shows every required field", listRowShowsEveryRequiredField);
 
 test("[f03-04-billboards] screen without a camera shows нет камеры", async () => {
   open("/billboards");

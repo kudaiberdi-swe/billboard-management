@@ -4,7 +4,6 @@ import type { FunctionReturnType } from "convex/server";
 import { Link, useParams } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import { t } from "../../../shared/strings";
-import { DemoLabel } from "../../components/DemoLabel";
 import { errorText } from "../../errors";
 import { useGuardedQuery } from "../../session";
 import { SLOTS_PER_CYCLE } from "../../../convex/lib/config";
@@ -180,7 +179,7 @@ function Schedule({ hours }: { hours: Card["hours"] }) {
 function Audience({ card }: { card: Card }) {
   const { audience } = card;
   return (
-    <Section title={t("ru", "billboards.audience")} aside={<DemoLabel />}>
+    <Section title={t("ru", "billboards.audience")}>
       {audience === null ? (
         <Text c="dimmed">{t("ru", "billboards.noCamera")}</Text>
       ) : (

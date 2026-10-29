@@ -13,7 +13,7 @@ import "dayjs/locale/ru";
 import { leaves } from "../../../shared/strings";
 import { ru } from "../../../shared/strings/ru";
 import { theme } from "../../theme";
-import { Reports } from "../Reports";
+import { AppShell } from "../../shell/AppShell";
 
 const convex = vi.hoisted(() => {
   const listeners = new Set<() => void>();
@@ -89,7 +89,7 @@ function open(path = "/reports?campaign=c1") {
     <MantineProvider theme={theme} env="test">
       <DatesProvider settings={{ locale: "ru" }}>
         <MemoryRouter initialEntries={[path]}>
-          <Reports />
+          <AppShell />
           <Where />
         </MemoryRouter>
       </DatesProvider>
@@ -151,33 +151,43 @@ test("[f09-reports] report has two separate blocks", () => {
   }
 });
 
+const NOTICE = "Все показатели — демонстрационные данные";
+
+const SIMULATED = ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"];
+
 const reportShowsTheDemoDisclaimer = () => {
   open();
   const disclaimer = screen.getByText(DISCLAIMER);
-  // the demo label sits on each simulated value; the disclaimer banner carries the sentence alone
-  for (const name of ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"]) {
-    expect(within(screen.getByRole("group", { name })).getByText("Демонстрационные данные")).toBeTruthy();
-  }
-  expect(within(screen.getByRole("group", { name: "Запланированные показы" })).queryByText("Демонстрационные данные")).toBeNull();
   for (const name of ["Результаты размещения", "Аналитика экранов"]) {
     expect(disclaimer.compareDocumentPosition(region(name)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   }
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
   expect(disclaimer.closest(".no-print")).toBeNull();
 };
 test("[f09-reports] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
 test("[c00-predeploy-hardening] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
+test("[c01-global-demo-notice] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
 
-test("[c00-predeploy-hardening] demo label sits on the simulated values", () => {
+test("[c01-global-demo-notice] report values carry no demo label", () => {
   open();
-  for (const name of ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"]) {
-    expect(within(screen.getByRole("group", { name })).getByText("Демонстрационные данные")).toBeTruthy();
+  for (const name of [...SIMULATED, "Запланированные показы"]) {
+    expect(within(screen.getByRole("group", { name })).queryByText("Демонстрационные данные")).toBeNull();
   }
+  expect(screen.queryByText("Демонстрационные данные")).toBeNull();
   const banner = screen.getByTestId("report-disclaimer");
-  expect(within(banner).getByText(DISCLAIMER)).toBeTruthy();
-  expect(within(banner).queryByText("Демонстрационные данные")).toBeNull();
+  expect(banner.textContent).toBe(DISCLAIMER);
   for (const next of [banner.previousElementSibling, banner.nextElementSibling]) {
     expect(next!.textContent).not.toContain("Демонстрационные данные");
   }
+});
+
+test("[c01-global-demo-notice] print view keeps the global notice", () => {
+  open();
+  const notice = screen.getByText(NOTICE);
+  expect(notice.closest(".no-print")).toBeNull();
+  expect(notice.compareDocumentPosition(screen.getByText(DISCLAIMER)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  // the menu is the shell's only print-hidden part; the notice sits in the content area, not in it
+  expect(screen.getByRole("navigation").contains(notice)).toBe(false);
 });
 
 test("[f09-reports] zero plan shows a dash", () => {
@@ -198,14 +208,16 @@ test("[f09-reports] report of a deleted campaign", () => {
   expect(screen.getByRole("combobox", { name: "Кампания" })).toBeTruthy(); // another campaign can be picked
 });
 
-test("[f09-reports] print button opens the print dialog", () => {
+const printButtonOpensThePrintDialog = () => {
   const print = vi.spyOn(window, "print").mockImplementation(() => {});
   open();
   fireEvent.click(screen.getByRole("button", { name: "Печать / сохранить в PDF" }));
   expect(print).toHaveBeenCalledTimes(1);
-});
+};
+test("[f09-reports] print button opens the print dialog", printButtonOpensThePrintDialog);
+test("[c01-global-demo-notice] print button opens the print dialog", printButtonOpensThePrintDialog);
 
-test("[f09-reports] print view hides menu and filters", () => {
+const printViewHidesMenuAndFilters = () => {
   open();
   for (const name of ["Кампания", "Период", "Город", "Билборд"]) {
     expect(screen.getByText(name, { selector: "label" }).closest(".no-print")).not.toBeNull();
@@ -223,7 +235,9 @@ test("[f09-reports] print view hides menu and filters", () => {
   expect(css).toMatch(/@media print \{ \.no-print \{ display: none !important; \}/);
   expect(css).toMatch(/@page \{ size: A4 portrait;/);
   expect(css).toMatch(/\.report-block \{ break-inside: avoid; \}/);
-});
+};
+test("[f09-reports] print view hides menu and filters", printViewHidesMenuAndFilters);
+test("[c01-global-demo-notice] print view hides menu and filters", printViewHidesMenuAndFilters);
 
 test("[f09-reports] no label claims a confirmed audience", () => {
   const offenders = leaves(ru.reports, "reports").filter(

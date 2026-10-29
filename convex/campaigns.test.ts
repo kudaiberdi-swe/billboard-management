@@ -183,6 +183,7 @@ describe("campaigns.get", () => {
   };
   test("[f05-campaign-list] per screen values add up to the totals", perScreenValuesAddUpToTheTotals);
   test("[c00-predeploy-hardening] per screen values add up to the totals", perScreenValuesAddUpToTheTotals);
+  test("[c01-global-demo-notice] per screen values add up to the totals", perScreenValuesAddUpToTheTotals);
 
   const offlineScreenIsMarkedOnTheCard = async () => {
     const { t, sessionId } = await seeded();
@@ -195,6 +196,7 @@ describe("campaigns.get", () => {
   };
   test("[f05-campaign-list] offline screen is marked on the card", offlineScreenIsMarkedOnTheCard);
   test("[c00-predeploy-hardening] offline screen is marked on the card", offlineScreenIsMarkedOnTheCard);
+  test("[c01-global-demo-notice] offline screen is marked on the card", offlineScreenIsMarkedOnTheCard);
 
   test("[f05-campaign-list] card with a malformed id", async () => {
     const { t, sessionId } = await seeded();

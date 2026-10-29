@@ -2,11 +2,10 @@ import { useSyncExternalStore } from "react";
 import { afterEach, expect, test, vi } from "vitest";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
-import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { MemoryRouter, useLocation } from "react-router-dom";
 import { ConvexError } from "convex/values";
 import { theme } from "../../theme";
-import { Campaigns } from "../Campaigns";
-import { CampaignCard } from "./CampaignCard";
+import { AppShell } from "../../shell/AppShell";
 
 // Fake Convex: query results by function name (as in src/shell/shell.test.tsx).
 const convex = vi.hoisted(() => {
@@ -46,10 +45,7 @@ function open(path: string) {
   render(
     <MantineProvider theme={theme}>
       <MemoryRouter initialEntries={[path]}>
-        <Routes>
-          <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/:id" element={<CampaignCard />} />
-        </Routes>
+        <AppShell />
         <Where />
       </MemoryRouter>
     </MantineProvider>,
@@ -101,10 +97,14 @@ const rowNameOpensTheCard = () => {
 test("[f05-campaign-list] row name opens the card", rowNameOpensTheCard);
 test("[c00-predeploy-hardening] row name opens the card", rowNameOpensTheCard);
 
-test("[f05-campaign-list] list carries the demo label", () => {
+const NOTICE = "Все показатели — демонстрационные данные";
+
+test("[c01-global-demo-notice] log values carry no demo label", () => {
   convex.set("campaigns:list", [ROW]);
   open("/campaigns");
-  expect(screen.getByText("Демонстрационные данные")).toBeTruthy();
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
+  expect(screen.queryByText("Демонстрационные данные")).toBeNull();
+  expect(screen.getByRole("columnheader", { name: "Показы по журналу" })).toBeTruthy();
 });
 
 const cardShowsCampaignDetails = () => {
@@ -116,10 +116,12 @@ const cardShowsCampaignDetails = () => {
   }
   expect(screen.getByRole("img", { name: "Креатив" }).getAttribute("src")).toBe("/demo/creatives/placeholder-1.svg");
   expect(screen.getByRole("table").textContent).toContain("KRG-001");
-  expect(screen.getByText("Демонстрационные данные")).toBeTruthy();
+  expect(screen.queryByText("Демонстрационные данные")).toBeNull();
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
 };
 test("[f05-campaign-list] card shows campaign details", cardShowsCampaignDetails);
 test("[c00-predeploy-hardening] card shows campaign details", cardShowsCampaignDetails);
+test("[c01-global-demo-notice] card shows campaign details", cardShowsCampaignDetails);
 
 test("[f05-campaign-list] card of a deleted campaign", () => {
   vi.spyOn(console, "error").mockImplementation(() => {}); // React logs the caught render error
@@ -185,7 +187,7 @@ test("[c00-predeploy-hardening] show in schedule of a campaign outside today", (
   expect(screen.getByTestId("path").textContent).toBe("/schedule?screen=s1&date=2026-11-10&campaign=c3");
 });
 
-test("[c00-predeploy-hardening] screen row shows code and name", () => {
+const screenRowShowsCodeAndName = () => {
   convex.set("campaigns:get", {
     ...CARD,
     screens: [
@@ -196,4 +198,6 @@ test("[c00-predeploy-hardening] screen row shows code and name", () => {
   open("/campaigns/c1");
   const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1);
   expect(rows.map((r) => r.querySelector("td")!.textContent)).toEqual(["AST-001 Есиль", "KRG-001 Центр"]);
-});
+};
+test("[c00-predeploy-hardening] screen row shows code and name", screenRowShowsCodeAndName);
+test("[c01-global-demo-notice] screen row shows code and name", screenRowShowsCodeAndName);

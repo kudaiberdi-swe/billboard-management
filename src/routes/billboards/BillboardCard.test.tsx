@@ -1,11 +1,11 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter } from "react-router-dom";
 import { ConvexError } from "convex/values";
 import { convex } from "../../test/fakeConvex";
 import { theme } from "../../theme";
-import { BillboardCard } from "./BillboardCard";
+import { AppShell } from "../../shell/AppShell";
 
 vi.mock("convex/react", () => import("../../test/fakeConvex"));
 
@@ -35,9 +35,7 @@ function open(value: unknown) {
   render(
     <MantineProvider theme={theme}>
       <MemoryRouter initialEntries={["/billboards/s1"]}>
-        <Routes>
-          <Route path="/billboards/:id" element={<BillboardCard />} />
-        </Routes>
+        <AppShell />
       </MemoryRouter>
     </MantineProvider>,
   );
@@ -57,7 +55,7 @@ test("[f03-04-billboards] card shows every required block", () => {
   expect(campaigns.getByText("Активна")).toBeTruthy();
   expect(campaigns.getByText("Запланирована")).toBeTruthy();
   expect(hourItems()).toHaveLength(16);
-  expect(block("Аудитория за 7 дней").getByText("Демонстрационные данные")).toBeTruthy();
+  expect(block("Аудитория за 7 дней").getByText("Трафик: люди в зоне наблюдения")).toBeTruthy();
   expect(block("Последние события").getByText("Экран недоступен")).toBeTruthy();
 });
 
@@ -85,29 +83,39 @@ test("[f03-04-billboards] unknown screen id", () => {
   vi.mocked(console.error).mockRestore();
 });
 
-test("[f03-04-billboards] card shows the demo audience", () => {
+const NOTICE = "Все показатели — демонстрационные данные";
+
+const cardShowsTheDemoAudience = () => {
   open(card());
   const audience = block("Аудитория за 7 дней");
-  for (const text of ["Трафик: люди в зоне наблюдения", "980", "Взгляды на экран", "120", "Транспорт", "300", "Демонстрационные данные"]) {
+  for (const text of ["Трафик: люди в зоне наблюдения", "980", "Взгляды на экран", "120", "Транспорт", "300"]) {
     expect(audience.getByText(text)).toBeTruthy();
   }
-});
+  expect(audience.queryByText("Демонстрационные данные")).toBeNull();
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
+};
+test("[f03-04-billboards] card shows the demo audience", cardShowsTheDemoAudience);
+test("[c01-global-demo-notice] card shows the demo audience", cardShowsTheDemoAudience);
 
-test("[f03-04-billboards] card of a screen without a camera", () => {
+const cardOfAScreenWithoutACamera = () => {
   open(card({ screen: { hasCamera: false, hasVehicleMetric: false }, audience: null }));
   const audience = block("Аудитория за 7 дней");
   expect(audience.getByText("нет камеры")).toBeTruthy();
   expect(audience.queryByText("Трафик: люди в зоне наблюдения")).toBeNull();
   expect(audience.queryByText(/^[\d\s]+$/)).toBeNull(); // no number values
-});
+};
+test("[f03-04-billboards] card of a screen without a camera", cardOfAScreenWithoutACamera);
+test("[c01-global-demo-notice] card of a screen without a camera", cardOfAScreenWithoutACamera);
 
-test("[f03-04-billboards] card of a screen without the vehicle metric", () => {
+const cardOfAScreenWithoutTheVehicleMetric = () => {
   open(card({ screen: { hasVehicleMetric: false }, audience: { people: 980, looks: 120, vehicles: null } }));
   const audience = block("Аудитория за 7 дней");
   expect(audience.getByText("980")).toBeTruthy();
   expect(audience.getByText("120")).toBeTruthy();
   expect(audience.queryByText("Транспорт")).toBeNull();
-});
+};
+test("[f03-04-billboards] card of a screen without the vehicle metric", cardOfAScreenWithoutTheVehicleMetric);
+test("[c01-global-demo-notice] card of a screen without the vehicle metric", cardOfAScreenWithoutTheVehicleMetric);
 
 test("[f03-04-billboards] card shows recent screen events", () => {
   open(card({ screen: { status: "offline" } }));
