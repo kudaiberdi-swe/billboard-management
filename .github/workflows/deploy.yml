@@ -1,0 +1,64 @@
+# Push to main: Convex production + Vercel production (GitHub environment "production").
+# Push to dev:  Convex dev deployment + Vercel preview (GitHub environment "development").
+# Setup, secrets, seed and rollback: docs/DEPLOY.md.
+name: Deploy
+
+on:
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+# One deploy per branch at a time; a newer push waits instead of cancelling a half-done deploy.
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: ${{ github.ref_name == 'main' && 'production' || 'development' }}
+      url: ${{ steps.vercel.outputs.url }}
+    env:
+      VERCEL_CLI: vercel@65.7.0
+      VERCEL_TARGET: ${{ github.ref_name == 'main' && 'production' || 'preview' }}
+      PROD_FLAG: ${{ github.ref_name == 'main' && '--prod' || '' }}
+      # Not secret (project ids), but kept with the secrets of the environment.
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+      # No secrets in env here: dependency install scripts never see the keys.
+      - run: npm ci
+
+      - name: Pull Vercel project settings
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx --yes "$VERCEL_CLI" pull --yes --environment="$VERCEL_TARGET"
+
+      # Pushes convex/ to the deployment of CONVEX_DEPLOY_KEY (environment-scoped: prod key in "production",
+      # dev key in "development"); --cmd builds the front first, with VITE_CONVEX_URL set to that deployment.
+      - name: Deploy Convex and build the front
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: npx convex deploy --cmd "npx --yes $VERCEL_CLI build $PROD_FLAG" --cmd-url-env-var-name VITE_CONVEX_URL
+
+      - name: Deploy the prebuilt front to Vercel
+        id: vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          url=$(npx --yes "$VERCEL_CLI" deploy --prebuilt $PROD_FLAG)
+          echo "url=$url" >> "$GITHUB_OUTPUT"

@@ -20,6 +20,17 @@ Set with `npx convex env set NAME value`. On production, name the target explici
 | --- | --- | --- | --- |
 | `DEMO_PASSWORD` | shared demo password checked by `demo.signIn` (ADR-0003); unset or shorter than 24 chars = nobody can sign in | team: at least 24 random chars; after rotating run `npx convex run demo:clearSessions`; share with the client | yes |
 
+## CI/CD (GitHub environment secrets)
+
+Set in GitHub -> Settings -> Environments, in both `production` and `development` (values differ per environment). Read only by `.github/workflows/deploy.yml`. Setup: `docs/DEPLOY.md`.
+
+| Key | What for | Where to get it |
+| --- | --- | --- |
+| `CONVEX_DEPLOY_KEY` | `npx convex deploy` target: the production deployment (`production`) or `dev/ci` (`development`) | Convex dashboard deployment settings, or `npx convex deployment token create`; permission `deployment:deploy` |
+| `VERCEL_TOKEN` | Vercel CLI auth for pull, build, deploy | Vercel account tokens page, scoped to the team |
+| `VERCEL_ORG_ID` | Vercel team of the project | `orgId` in `.vercel/project.json` after `vercel link` |
+| `VERCEL_PROJECT_ID` | Vercel project | `projectId` in `.vercel/project.json` after `vercel link` |
+
 ## Self-hosted stack
 
 Only when Convex is self-hosted. Values live in the stack's env file on the host, mode 600, never in git.
