@@ -55,6 +55,7 @@ Same file. In `.env` on the VM:
 - Keep `REDACT_LOGS_TO_CLIENT=1` (the template default). Check: `$DC exec backend printenv REDACT_LOGS_TO_CLIENT` prints `1`.
 - Managed Postgres: `POSTGRES_URL=postgresql://user:pass@host:port` (no database name), `DO_NOT_REQUIRE_SSL=` (empty). Create the database `convex_self_hosted` first.
 - Restrict the dashboard (IP allowlist or basic auth in Caddy) before you expose it.
+- Keep the upload size cap in the `Caddyfile` (KI-03): `request_body /api/storage/upload*` with `max_size 21MB` refuses a video body past 20 MB (+1 MB margin) at the proxy, before Convex stores it. Change it together with `VIDEO_MAX_BYTES` (`convex/lib/config.ts`).
 - Check the VM region and the database region against the data residency rule in `CLAUDE.md` before the first deploy.
 - Never set `DEV_IDENTITY_KEY` on the stack. Never seed production.
 

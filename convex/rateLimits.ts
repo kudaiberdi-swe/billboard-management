@@ -12,7 +12,9 @@
 //   empty and blocks NEW sign-ins for everyone (RATE_LIMITED, retry within a minute). Signed-in viewers keep working:
 //   their sessions last 7 days and no other function reads this bucket. Kept on purpose (design D3a, spec demo-access
 //   «global sign-in bucket»: 300 per minute): without a client IP, any exemption for a correct password would tell a
-//   guesser which attempt was right. Its rate is fixed by the spec; a per-IP limit at the proxy is the real remedy.
+//   guesser which attempt was right. Its rate is fixed by the spec. A per-IP limit at the proxy cannot help: Convex
+//   mutations ride one WebSocket, so the proxy sees one connection, not sign-in calls. The real remedy is sign-in
+//   through an HTTP action keyed by the client IP the proxy sets (a spec and design change, not done).
 import { MINUTE, HOUR, RateLimiter, type RateLimitConfig } from "@convex-dev/rate-limiter";
 import { components } from "./_generated/api";
 

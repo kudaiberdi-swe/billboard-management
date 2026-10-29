@@ -13,6 +13,14 @@ import { SESSION_PAGE } from "./demo";
 import { normalizeKey, rateLimiter } from "./rateLimits";
 import { LOG_ROW_BUDGET } from "./showLog";
 import { datesInRange, isDate, requireDate } from "./lib/time";
+import { CYCLES_PER_HOUR } from "./lib/config";
+import { campaignsByScreen, occupancy } from "./lib/slots";
+
+// KI-08 counts how screens.list uses the per-screen campaign index; the real functions still run.
+vi.mock("./lib/slots", async (importOriginal) => {
+  const real = await importOriginal<typeof import("./lib/slots")>();
+  return { ...real, campaignsByScreen: vi.fn(real.campaignsByScreen), occupancy: vi.fn(real.occupancy) };
+});
 
 const modules = import.meta.glob("./**/*.*s");
 const PASSWORD = "synthetic-demo-password-for-tests";
@@ -118,6 +126,8 @@ test("[pre-deploy-hardening] KI-08 screens.list and campaigns.list stay fast at 
   // Direct inserts, one 366-day campaign per year (no slot check needed for the read cost).
   const existing = (await t.run((ctx) => ctx.db.query("campaigns").collect())).length;
   for (let i = existing; i < 200; i += 1) await insertCampaign(t, ids, `${2001 + (i % 90)}-01-01`, `${2001 + (i % 90)}-12-31`);
+  vi.mocked(campaignsByScreen).mockClear();
+  vi.mocked(occupancy).mockClear();
   const t0 = performance.now(); // only Date is faked
   const list = await t.query(api.screens.list, { sessionId });
   const screensMs = performance.now() - t0;
@@ -126,10 +136,19 @@ test("[pre-deploy-hardening] KI-08 screens.list and campaigns.list stay fast at 
   const campaignsMs = performance.now() - t1;
   expect(list.rows).toHaveLength(100);
   expect(campaigns).toHaveLength(200);
-  // Measured on the dev laptop: before the fix ~320 ms and ~2 100 ms (index rebuilt per screen, days × screens plan
-  // loop); after ~25 ms and ~160 ms. The bounds leave room for a loaded test runner.
-  expect(screensMs).toBeLessThan(150);
-  expect(campaignsMs).toBeLessThan(800);
+  // The work, not the clock: screens.list builds the campaign index once and every per-screen occupancy reuses it.
+  expect(campaignsByScreen).toHaveBeenCalledTimes(1);
+  const index = vi.mocked(campaignsByScreen).mock.results[0].value;
+  expect(vi.mocked(occupancy).mock.calls).toHaveLength(100);
+  for (const call of vi.mocked(occupancy).mock.calls) expect(call[4]).toBe(index);
+  // The closed-form plan matches the per-screen sum: one 365-day campaign (2001), 08–20 on every screen of the network.
+  const screens = await screensOf(t);
+  const perDay = screens.reduce((sum, s) => sum + CYCLES_PER_HOUR * Math.max(0, Math.min(20, s.workEndHour) - Math.max(8, s.workStartHour)), 0);
+  expect(campaigns.find((c) => c.startDate === "2001-01-01")!.plannedShows).toBe(perDay * 365);
+  // Before the fix ~320 ms and ~2 100 ms on the dev laptop, after ~25 ms and ~160 ms; the ceiling only catches a
+  // pathological regression and holds on a loaded runner.
+  expect(screensMs).toBeLessThan(5_000);
+  expect(campaignsMs).toBeLessThan(5_000);
 }, 60_000);
 
 // ---------- KI-04: the show log stays under the read limit ----------

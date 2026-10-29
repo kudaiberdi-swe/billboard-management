@@ -427,7 +427,7 @@ describe("reset", () => {
     expect(await oldLeft()).toBe(0);
     const state = await load(t);
     for (const check of Object.values(SEED_CHECKS)) check(state, kzNow(Date.now()).date);
-  });
+  }, 30_000); // thousands of inserts and deletes: the 5 s default is too tight under a fully parallel run
 
   test("[base-contract] data is shared between sessions", async () => {
     const t = setup();

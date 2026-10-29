@@ -6,6 +6,11 @@
 
 # Convex client API + WebSocket sync (CONVEX_CLOUD_ORIGIN = https://{$CONVEX_API_DOMAIN})
 {$CONVEX_API_DOMAIN} {
+	# KI-03: upload URLs (campaigns.generateUploadUrl) point here; Convex checks the size only after the bytes are
+	# stored, so the proxy refuses bodies past VIDEO_MAX_BYTES (20 MB, convex/lib/config.ts) + 1 MB of margin.
+	request_body /api/storage/upload* {
+		max_size 21MB
+	}
 	reverse_proxy backend:3210
 }
 
