@@ -1,10 +1,10 @@
-// App frame (design D9): left menu with the 6 sections in contract route order, the reset-demo button.
+// App frame (design D9): left menu with the 6 sections in contract route order, the reset-demo and sign-out buttons.
 import { Alert, Button, Group, AppShell as MantineAppShell, Modal, NavLink, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Navigate, NavLink as RouterNavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import { t, type StringsKey } from "../../shared/strings";
-import { useGuardedMutation, useSubmit } from "../session";
+import { signOut, useGuardedMutation, useSubmit } from "../session";
 import { NAVBAR_WIDTH } from "../theme";
 import { Analytics } from "../routes/Analytics";
 import { Billboards } from "../routes/Billboards";
@@ -45,7 +45,13 @@ export function AppShell() {
             />
           ))}
         </Stack>
-        <ResetDemo />
+        <Stack gap={4}>
+          <ResetDemo />
+          {/* client-side sign-out: forgets the session id; the Gate shows the password screen */}
+          <Button variant="subtle" color="gray" size="sm" justify="flex-start" onClick={signOut}>
+            {t("ru", "common.signOut")}
+          </Button>
+        </Stack>
       </MantineAppShell.Navbar>
       <MantineAppShell.Main>
         <Routes>
@@ -75,7 +81,7 @@ function ResetDemo() {
   return (
     <>
       {/* fde-echo:local-only opens the confirmation; the reset itself is the confirm button below */}
-      <Button variant="default" onClick={open}>
+      <Button variant="subtle" color="red" size="sm" justify="flex-start" onClick={open}>
         {t("ru", "demo.reset")}
       </Button>
       <Modal opened={opened} onClose={close} title={<Title order={2} size="h4">{t("ru", "demo.resetTitle")}</Title>}>

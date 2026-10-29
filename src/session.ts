@@ -26,6 +26,13 @@ export function reportUnauthenticated(): void {
   for (const listener of listeners) listener();
 }
 
+/** Ends the demo session in this browser: forgets the id and returns to the password screen.
+ * shortcut: client-side only, the server session row lives until it expires; add a server logout when one exists. */
+export function signOut(): void {
+  localStorage.removeItem(KEY);
+  reportUnauthenticated();
+}
+
 type Guarded<F extends FunctionReference<"query" | "mutation">> = Omit<FunctionArgs<F>, "sessionId">;
 
 export function useGuardedQuery<Q extends FunctionReference<"query">>(

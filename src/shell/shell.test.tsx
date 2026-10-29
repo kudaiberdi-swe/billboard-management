@@ -178,6 +178,17 @@ test("[base-contract] reset confirmed", async () => {
   expect(screen.getByRole("heading", { level: 1, name: "Главная" })).toBeTruthy();
 });
 
+test("sign-out forgets the session and returns to the password screen", async () => {
+  open("/campaigns");
+  const before = localStorage.getItem("billboard.sessionId");
+  expect(before).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Выйти" }));
+  expect(await screen.findByLabelText("Пароль", { exact: false })).toBeTruthy();
+  expect(path()).toBe("/login");
+  expect(menu()).toBeNull();
+  expect(localStorage.getItem("billboard.sessionId")).not.toBe(before);
+});
+
 test("[base-contract] demo label shows the verbatim text", () => {
   render(
     <MantineProvider theme={theme}>
