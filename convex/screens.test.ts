@@ -97,28 +97,34 @@ async function fixture(screens: Partial<ScreenFields>[], campaigns: (CampaignFie
 }
 
 describe("screens.list", () => {
-  test("[f03-04-billboards] list shows the 100 seed screens in 4 regions", async () => {
+  const listShowsThe100SeedScreensIn4Regions = async () => {
     const { t, sessionId } = await seeded();
     const { rows } = await t.query(api.screens.list, { sessionId });
     expect(rows).toHaveLength(100);
     for (const city of CITIES) expect(rows.some((r) => r.city === city)).toBe(true);
     const codes = rows.map((r) => r.code);
     expect(codes).toEqual([...codes].sort());
-  });
+  };
+  test("[f03-04-billboards] list shows the 100 seed screens in 4 regions", listShowsThe100SeedScreensIn4Regions);
+  test("[c01-global-demo-notice] list shows the 100 seed screens in 4 regions", listShowsThe100SeedScreensIn4Regions);
 
-  test("[f03-04-billboards] seed has offline screens", async () => {
+  const seedHasOfflineScreens = async () => {
     const { t, sessionId } = await seeded();
     const { rows } = await t.query(api.screens.list, { sessionId });
     expect(rows.some((r) => r.status === "offline")).toBe(true);
     expect(rows.some((r) => r.status === "online")).toBe(true);
-  });
+  };
+  test("[f03-04-billboards] seed has offline screens", seedHasOfflineScreens);
+  test("[c01-global-demo-notice] seed has offline screens", seedHasOfflineScreens);
 
-  test("[f03-04-billboards] list without a session is refused", async () => {
+  const listWithoutASessionIsRefused = async () => {
     const { t } = await seeded();
     expect((await errorData(t.query(api.screens.list, { sessionId: "no-such-session" }))).code).toBe("UNAUTHENTICATED");
     const expired = await session(t, -1);
     expect((await errorData(t.query(api.screens.list, { sessionId: expired }))).code).toBe("UNAUTHENTICATED");
-  });
+  };
+  test("[f03-04-billboards] list without a session is refused", listWithoutASessionIsRefused);
+  test("[c01-global-demo-notice] list without a session is refused", listWithoutASessionIsRefused);
 
   test("[f03-04-billboards] occupancy uses the 7-day period", async () => {
     const { t, sessionId } = await fixture(

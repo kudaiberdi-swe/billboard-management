@@ -7,7 +7,6 @@ import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../../convex/_generated/api";
 import { kzNow } from "../../../convex/lib/time";
 import { CATALOGS, plural, t, type StringsKey } from "../../../shared/strings";
-import { DemoLabel } from "../../components/DemoLabel";
 import { formatDate, formatNumber, formatPercent, formatPeriod } from "../../format";
 import { AXIS_DATE_FORMAT, CHART_HEIGHT, DAY_AXIS_TICKS, DEMO_COLOR } from "../../theme";
 
@@ -61,8 +60,8 @@ export function ReportView({ data }: { data: Report }) {
       <Block title={t("ru", "reports.placement")} flow>
         <SimpleGrid cols={3} className="report-keep">
           <Value label="reports.planned" value={formatNumber(placement.plannedShows)} />
-          <Value label="reports.log" value={formatNumber(placement.logShows)} demo />
-          <Value label="reports.completion" value={formatCompletion(placement.completion)} demo />
+          <Value label="reports.log" value={formatNumber(placement.logShows)} />
+          <Value label="reports.completion" value={formatCompletion(placement.completion)} />
         </SimpleGrid>
         <ByDay days={placement.byDay} />
         <ByScreen rows={placement.byScreen} />
@@ -70,9 +69,9 @@ export function ReportView({ data }: { data: Report }) {
 
       <Block title={t("ru", "reports.screenAnalytics")}>
         <SimpleGrid cols={3} className="report-keep">
-          <Value label="reports.traffic" value={formatNumber(screenAnalytics.traffic)} demo />
-          <Value label="reports.looks" value={formatNumber(screenAnalytics.looks)} demo />
-          <Value label="reports.contacts" value={formatNumber(screenAnalytics.contacts)} demo />
+          <Value label="reports.traffic" value={formatNumber(screenAnalytics.traffic)} />
+          <Value label="reports.looks" value={formatNumber(screenAnalytics.looks)} />
+          <Value label="reports.contacts" value={formatNumber(screenAnalytics.contacts)} />
         </SimpleGrid>
         {screenAnalytics.screensWithoutCamera > 0 && (
           <Text size="sm" c="dimmed">
@@ -116,7 +115,7 @@ function Block({ title, flow, children }: { title: string; flow?: true; children
   );
 }
 
-function Value({ label, value, demo }: { label: StringsKey; value: string; demo?: true }) {
+function Value({ label, value }: { label: StringsKey; value: string }) {
   const id = useId();
   return (
     <Stack gap={4} align="flex-start" role="group" aria-labelledby={id}>
@@ -126,7 +125,6 @@ function Value({ label, value, demo }: { label: StringsKey; value: string; demo?
       <Text fz="h3" fw={600} style={NUMERIC}>
         {value}
       </Text>
-      {demo && <DemoLabel />}
     </Stack>
   );
 }

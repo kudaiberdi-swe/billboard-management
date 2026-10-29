@@ -205,7 +205,7 @@ describe("[f02-dashboard] dashboard.summary", () => {
     expect(r.screensByCity.every((c) => c.count === 0)).toBe(true);
   });
 
-  test("[f02-dashboard] contacts follow D-4", async () => {
+  const contactsFollowD4 = async () => {
     const { t, sessionId } = await seeded();
     const data = await load(t);
     const sel = data.screens.filter((s) => s.city === "astana");
@@ -213,7 +213,9 @@ describe("[f02-dashboard] dashboard.summary", () => {
     const perCampaign = data.campaigns.map((c) => estimateContacts(c, sel, WEEK.from, WEEK.to).total);
     expect(r.contacts).toBe(perCampaign.reduce((a, n) => a + n, 0));
     expect(r.contacts).toBeGreaterThan(0);
-  });
+  };
+  test("[f02-dashboard] contacts follow D-4", contactsFollowD4);
+  test("[c01-global-demo-notice] contacts follow D-4", contactsFollowD4);
 
   test("[f02-dashboard] occupancy chart per day", async () => {
     const { t, sessionId } = await seeded();

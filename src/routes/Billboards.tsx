@@ -6,7 +6,6 @@ import { Link, useSearchParams } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import { errorText } from "../errors";
 import { t, type StringsKey } from "../../shared/strings";
-import { DemoLabel } from "../components/DemoLabel";
 import { useGuardedQuery } from "../session";
 import { formatDate, formatNumber as num } from "../format";
 import { ADDRESS_WIDTH, MAP_HEIGHT, SCREEN_STATUS_COLOR, STATUS_COLUMN_WIDTH, THUMB_WIDTH } from "../theme";
@@ -151,10 +150,7 @@ function ScreenList({ filters }: { filters: ReturnType<typeof filtersFrom> }) {
         </Suspense>
       </Boundary>
 
-      <Group justify="space-between">
-        <Text c="dimmed">{t("ru", "billboards.period", { from: formatDate(data.from), to: formatDate(data.to) })}</Text>
-        <DemoLabel />
-      </Group>
+      <Text c="dimmed">{t("ru", "billboards.period", { from: formatDate(data.from), to: formatDate(data.to) })}</Text>
 
       {data.rows.length === 0 ? (
         <Text py="xl" ta="center" c="dimmed">

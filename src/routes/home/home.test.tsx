@@ -9,7 +9,7 @@ import { MemoryRouter, useLocation } from "react-router-dom";
 import { ConvexError } from "convex/values";
 import "dayjs/locale/ru";
 import { theme } from "../../theme";
-import { Home } from "../Home";
+import { AppShell } from "../../shell/AppShell";
 
 const convex = vi.hoisted(() => {
   const listeners = new Set<() => void>();
@@ -87,7 +87,7 @@ function open(path = "/") {
     <MantineProvider theme={theme} env="test">
       <DatesProvider settings={{ locale: "ru" }}>
         <MemoryRouter initialEntries={[path]}>
-          <Home />
+          <AppShell />
           <Where />
         </MemoryRouter>
       </DatesProvider>
@@ -140,12 +140,16 @@ test("[f02-dashboard] planned and log shows are separate cards", () => {
   expect(within(card("Запланированные показы")).queryByText("Демонстрационные данные")).toBeNull();
 });
 
-test("[f02-dashboard] simulated cards carry the demo label", () => {
+const NOTICE = "Все показатели — демонстрационные данные";
+
+test("[c01-global-demo-notice] simulated cards carry no demo label", () => {
   open();
   for (const name of ["Показы по журналу", "Оценочные контакты с кампанией", "Взгляды на экран"]) {
-    expect(within(card(name)).getByText("Демонстрационные данные")).toBeTruthy();
+    expect(within(card(name)).queryByText("Демонстрационные данные")).toBeNull();
+    expect(value(name)).toMatch(/\d/);
   }
-  expect(screen.getAllByText("Демонстрационные данные")).toHaveLength(3);
+  expect(screen.queryByText("Демонстрационные данные")).toBeNull();
+  expect(screen.getAllByText(NOTICE)).toHaveLength(1);
 });
 
 test("[f02-dashboard] occupancy chart per day", () => {

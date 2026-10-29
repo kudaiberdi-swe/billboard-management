@@ -1,9 +1,9 @@
 // Theme tokens: the one place for colour, type, spacing and size choices (no DESIGN.md yet).
 // Operate mode, laptop in a meeting room: light surface, neutral greys, one calm accent for action and
-// the current menu item, a warm colour reserved for the demo-data label.
+// the current menu item, a warm colour reserved for the demo-data notice and the report disclaimer.
 import { createTheme, NavLink, type CSSVariablesResolver } from "@mantine/core";
 
-/** Text of the demo-data label: a dark orange that keeps 4.5:1 on the light orange badge (WCAG AA). */
+/** Text of the global demo-data notice: a dark orange, 6.4:1 on the white page (WCAG AA). */
 export const DEMO_TEXT = "#a63c06";
 
 export const theme = createTheme({
@@ -32,7 +32,7 @@ export const cssVariablesResolver: CSSVariablesResolver = () => ({
   dark: {},
 });
 
-/** Colour of every simulated-value label (PRODUCT.md principle 1). */
+/** Colour of the report disclaimer banner (PRODUCT.md principle 1). */
 export const DEMO_COLOR = "orange";
 /** Left menu width, px. */
 export const NAVBAR_WIDTH = 248;

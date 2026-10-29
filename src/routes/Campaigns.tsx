@@ -2,7 +2,6 @@ import { Anchor, Badge, Button, Group, Loader, Stack, Table, Text, Title } from 
 import { Link } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import { t } from "../../shared/strings";
-import { DemoLabel } from "../components/DemoLabel";
 import { LogShows } from "../components/LogShows";
 import { formatNumber, formatPeriod } from "../format";
 import { useGuardedQuery } from "../session";
@@ -38,12 +37,7 @@ export function Campaigns() {
                 <Table.Th ta="right">{t("ru", "campaigns.screens")}</Table.Th>
                 <Table.Th>{t("ru", "campaigns.status")}</Table.Th>
                 <Table.Th ta="right">{t("ru", "campaigns.planned")}</Table.Th>
-                <Table.Th ta="right">
-                  <Stack gap={4} align="flex-end">
-                    {t("ru", "campaigns.log")}
-                    <DemoLabel />
-                  </Stack>
-                </Table.Th>
+                <Table.Th ta="right">{t("ru", "campaigns.log")}</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>

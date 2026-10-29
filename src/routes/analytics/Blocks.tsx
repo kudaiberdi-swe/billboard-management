@@ -1,12 +1,11 @@
 // Value cards, per-hour chart, age and gender estimate and the terms block (spec audience-screen).
-// Every block with simulated values carries <DemoLabel />; no images of people anywhere.
+// The shell's global notice marks the simulated values; no per-block label. No images of people anywhere.
 import { useId, type ReactNode } from "react";
 import { Paper, Progress, SimpleGrid, Stack, Table, Text, Title, VisuallyHidden } from "@mantine/core";
 import { BarChart } from "@mantine/charts";
 import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../../convex/_generated/api";
 import { t, type StringsKey } from "../../../shared/strings";
-import { DemoLabel } from "../../components/DemoLabel";
 import { formatHour, formatNumber, formatPercent } from "../../format";
 import { AUDIENCE_SERIES_COLOR, CHART_HEIGHT, HOUR_AXIS_INTERVAL } from "../../theme";
 
@@ -19,12 +18,9 @@ function Block({ title, children }: { title: string; children: (titleId: string)
   return (
     <Paper withBorder p="md" component="section" aria-labelledby={id}>
       <Stack gap="sm">
-        <Stack gap={6} align="flex-start">
-          <Title order={2} size="h4" id={id}>
-            {title}
-          </Title>
-          <DemoLabel />
-        </Stack>
+        <Title order={2} size="h4" id={id}>
+          {title}
+        </Title>
         {children(id)}
       </Stack>
     </Paper>
@@ -58,7 +54,6 @@ function Card({ label, value }: { label: string; value: string }) {
         <Text fz="h2" fw={600} style={NUMERIC}>
           {value}
         </Text>
-        <DemoLabel />
       </Stack>
     </Paper>
   );

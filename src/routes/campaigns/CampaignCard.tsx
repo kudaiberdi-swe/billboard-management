@@ -4,7 +4,6 @@ import { Link, useParams } from "react-router-dom";
 import { api } from "../../../convex/_generated/api";
 import { kzNow } from "../../../convex/lib/time";
 import { t, type StringsKey } from "../../../shared/strings";
-import { DemoLabel } from "../../components/DemoLabel";
 import { SimulateShowsButton } from "../../components/SimulateShowsButton";
 import { errorCode, errorText } from "../../errors";
 import { LogShows } from "../../components/LogShows";
@@ -55,7 +54,6 @@ function Card({ id }: { id: string }) {
         {/* actions area: f10 adds its simulate-shows button here */}
         <Group align="flex-start" justify="flex-end" wrap="nowrap">
           <SimulateShowsButton campaignId={c._id} />
-          <DemoLabel />
         </Group>
       </Group>
       <SimpleGrid cols={2} spacing="xl">

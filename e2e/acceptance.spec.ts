@@ -22,7 +22,9 @@ const CREATED = /^E2E приёмка /;
 const ready = (page: Page) => expect(page.locator('[aria-busy="true"]:visible')).toHaveCount(0);
 const shot = (page: Page, file: string) => page.screenshot({ path: `${SHOTS}/${file}`, fullPage: true });
 const nav = (page: Page) => page.getByRole('navigation', { name: L('common.menu') });
-const demoLabel = (page: Page) => page.getByText(L('demo.label')).first();
+// c01: one global demo notice per page, no per-value «Демонстрационные данные» label
+const notice = (page: Page) => page.getByText(L('demo.notice'), { exact: true });
+const oldLabel = (page: Page) => page.getByText(L('entities.demo'), { exact: true });
 
 async function pick(page: Page, label: string, option: string | RegExp) {
   await page.getByRole('combobox', { name: label, exact: true }).click();
@@ -30,9 +32,9 @@ async function pick(page: Page, label: string, option: string | RegExp) {
 }
 
 async function valueOf(page: Page, label: string) {
-  // the group reads "<label> <value> [<demo label>]"
+  // the group reads "<label> <value>"
   const text = await page.getByRole('group', { name: label, exact: true }).innerText();
-  return num(text.replace(label, '').split(L('demo.label'))[0]);
+  return num(text.replace(label, ''));
 }
 
 test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
@@ -46,7 +48,8 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     await expect(links).toHaveText([
       L('routes.home'), L('routes.billboards'), L('routes.campaigns'), L('routes.schedule'), L('routes.analytics'), L('routes.reports'),
     ]);
-    await expect(demoLabel(page)).toBeVisible();
+    await expect(notice(page)).toHaveCount(1);
+    await expect(notice(page)).toBeVisible();
     await shot(page, '01-admin-home.png');
   });
 
@@ -71,7 +74,7 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     await shot(page, '02b-admin-billboard-card.png');
   });
 
-  test('step 3: card shows occupancy, schedule and demo audience with «Демонстрационные данные»', async ({ asRole }) => {
+  test('step 3: card shows occupancy, schedule and demo audience under the global demo notice', async ({ asRole }) => {
     const page = await asRole('admin');
     await page.goto('/billboards?city=astana');
     await ready(page);
@@ -81,7 +84,8 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     await expect(page.getByRole('region', { name: L('billboards.scheduleToday') })).toBeVisible();
     const audience = page.getByRole('region', { name: L('billboards.audience') });
     await expect(audience).toBeVisible();
-    await expect(audience.getByText(L('demo.label'))).toBeVisible();
+    await expect(notice(page)).toBeVisible();
+    await expect(oldLabel(page)).toHaveCount(0);
     await expect(audience.getByText(L('billboards.people'))).toBeVisible();
     await shot(page, '03-admin-card-values.png');
   });
@@ -205,6 +209,9 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     await expect(page.getByText(L('reports.disclaimer'), { exact: true })).toBeVisible();
     await expect(page.getByText('Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват', { exact: true })).toBeVisible();
     await expect(page.getByText(/подтверждённ\S* аудитори/i)).toHaveCount(0);
+    // c01: the global notice sits above the disclaimer; no value carries its own label
+    await expect(notice(page)).toBeVisible();
+    await expect(oldLabel(page)).toHaveCount(0);
     await expect(page.getByRole('region', { name: L('reports.byDay') }).or(page.getByText(L('reports.byDay'))).first()).toBeVisible();
     await expect(page.getByText(L('reports.byScreen')).first()).toBeVisible();
     await shot(page, '09-admin-report-seeded.png');
@@ -230,6 +237,7 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     await expect(page.getByRole('heading', { level: 1, name: L('routes.reports') })).toBeHidden();
     await expect(page.getByRole('region', { name: L('reports.placement') })).toBeVisible();
     await expect(page.getByText(L('reports.disclaimer'), { exact: true })).toBeVisible();
+    await expect(notice(page)).toBeVisible(); // c01: the printed report keeps the global notice
     await shot(page, '10-admin-report-print-media.png');
     await page.pdf({ path: `${SHOTS}/10-admin-report-print.pdf`, format: 'A4' });
   });
@@ -292,21 +300,27 @@ test.describe('SoW §4 forks', { tag: '@acceptance' }, () => {
     await expect(page.getByRole('alert')).toHaveText(L('errors.WRONG_PASSWORD'));
     await expect(nav(page)).toHaveCount(0);
     await expect(page.getByRole('heading', { level: 1, name: L('routes.home') })).toHaveCount(0);
+    await expect(notice(page)).toHaveCount(0); // c01: no notice on the password screen
     await shot(page, 'F1-wrong-password.png');
     await context.close();
   });
 
-  test('F-1 AC2: «Демонстрационные данные» on every screen with simulated values', async ({ asRole }) => {
+  test('F-1 AC2: the global demo notice on every section, no per-value label', async ({ asRole }) => {
     const page = await asRole('admin');
     for (const [route, file] of [
       ['/', 'F1-label-home.png'],
       ['/billboards', 'F1-label-billboards.png'],
       ['/campaigns', 'F1-label-campaigns.png'],
+      ['/schedule', 'F1-label-schedule.png'],
       ['/analytics', 'F1-label-analytics.png'],
+      ['/reports', 'F1-label-reports.png'],
+      ['/campaigns/new', 'F1-label-campaign-new.png'],
     ] as const) {
       await page.goto(route);
       await ready(page);
-      await expect(demoLabel(page), route).toBeVisible();
+      await expect(notice(page), route).toHaveCount(1);
+      await expect(notice(page), route).toBeVisible();
+      await expect(oldLabel(page), route).toHaveCount(0);
       await shot(page, file);
     }
   });

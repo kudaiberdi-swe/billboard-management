@@ -1,11 +1,12 @@
-// App frame (design D9): left menu with the 6 sections in contract route order, the reset-demo and sign-out buttons.
+// App frame (design D9): left menu with the 6 sections in contract route order, the reset-demo and sign-out buttons,
+// and the one demo-data notice above every signed-in page (c01-global-demo-notice).
 import { Alert, Button, Group, AppShell as MantineAppShell, Modal, NavLink, Stack, Text, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Navigate, NavLink as RouterNavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
 import { t, type StringsKey } from "../../shared/strings";
 import { signOut, useGuardedMutation, useSubmit } from "../session";
-import { NAVBAR_WIDTH } from "../theme";
+import { DEMO_TEXT, NAVBAR_WIDTH } from "../theme";
 import { Analytics } from "../routes/Analytics";
 import { Billboards } from "../routes/Billboards";
 import { BillboardCard } from "../routes/billboards/BillboardCard";
@@ -54,6 +55,10 @@ export function AppShell() {
         </Stack>
       </MantineAppShell.Navbar>
       <MantineAppShell.Main>
+        {/* rendered once here, not per page, so no screen can miss it; outside .no-print, so the report prints it */}
+        <Text role="note" size="sm" c={DEMO_TEXT} mb="md">
+          {t("ru", "demo.notice")}
+        </Text>
         <Routes>
           {SECTIONS.map(({ path, Page }) => (
             <Route key={path} path={path} element={<Page />} />
