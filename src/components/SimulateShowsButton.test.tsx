@@ -78,3 +78,13 @@ test("[f10-simulate-shows] not started campaign is refused", async () => {
   );
   expect(screen.queryByRole("status")).toBeNull();
 });
+
+test("[predeploy] full show log gets its own message", async () => {
+  convex.mutations["showLog:simulate"] = vi.fn().mockRejectedValue(new ConvexError({ code: "INVALID_INPUT", field: "campaignId" }));
+  open();
+  fireEvent.click(button());
+  expect((await screen.findByRole("alert")).textContent).toBe(
+    "Журнал показов заполнен. Сбросьте демо, чтобы смоделировать показы снова.",
+  );
+  expect(button().hasAttribute("disabled")).toBe(false);
+});

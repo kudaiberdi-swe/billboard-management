@@ -18,6 +18,12 @@ export function errorCode(error: unknown): ErrorCode {
   return (ERROR_CODES as readonly unknown[]).includes(data?.code) ? (data!.code as ErrorCode) : "UNKNOWN";
 }
 
+/** The `field` detail of an INVALID_INPUT error, if any. */
+export function errorField(error: unknown): string | undefined {
+  const field = errorData(error)?.field;
+  return typeof field === "string" ? field : undefined;
+}
+
 export function errorText(error: unknown): string {
   const code = errorCode(error);
   const params: Params = {};

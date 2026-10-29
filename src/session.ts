@@ -61,17 +61,18 @@ export function useGuardedMutation<M extends FunctionReference<"mutation">>(fn: 
 /** Runs a write from a form or button: a busy flag and the Russian text of the last failure. */
 export function useSubmit<A extends unknown[]>(fn: (...args: A) => Promise<unknown>) {
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
+  const [failure, setFailure] = useState<unknown>();
   async function submit(...args: A) {
     setBusy(true);
-    setError(undefined);
+    setFailure(undefined);
     try {
       await fn(...args);
     } catch (e) {
-      setError(errorText(e));
+      setFailure(e ?? new Error());
     } finally {
       setBusy(false);
     }
   }
-  return { submit, busy, error };
+  // error: the Russian text; failure: the raw error, for a caller that branches on its code
+  return { submit, busy, error: failure === undefined ? undefined : errorText(failure), failure };
 }
