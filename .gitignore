@@ -33,3 +33,5 @@ docs/recon/raw/
 .DS_Store
 
 .echo/security-audit/
+.vercel
+docs/handover/work/
