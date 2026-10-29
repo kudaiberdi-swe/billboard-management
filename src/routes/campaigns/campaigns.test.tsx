@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { expect, test, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MantineProvider } from "@mantine/core";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { ConvexError } from "convex/values";
@@ -38,7 +38,8 @@ vi.mock("convex/react", async () => {
 });
 
 function Where() {
-  return <output data-testid="path">{useLocation().pathname}</output>;
+  const { pathname, search } = useLocation();
+  return <output data-testid="path">{pathname + search}</output>;
 }
 
 function open(path: string) {
@@ -86,7 +87,7 @@ test("[f05-campaign-list] empty list shows a message", () => {
   expect(screen.queryByRole("table")).toBeNull();
 });
 
-test("[f05-campaign-list] row name opens the card", () => {
+const rowNameOpensTheCard = () => {
   convex.set("campaigns:list", [ROW]);
   convex.set("campaigns:get", CARD);
   open("/campaigns");
@@ -96,7 +97,9 @@ test("[f05-campaign-list] row name opens the card", () => {
   }
   fireEvent.click(screen.getByRole("link", { name: "Летняя акция" }));
   expect(screen.getByTestId("path").textContent).toBe("/campaigns/c1");
-});
+};
+test("[f05-campaign-list] row name opens the card", rowNameOpensTheCard);
+test("[c00-predeploy-hardening] row name opens the card", rowNameOpensTheCard);
 
 test("[f05-campaign-list] list carries the demo label", () => {
   convex.set("campaigns:list", [ROW]);
@@ -104,7 +107,7 @@ test("[f05-campaign-list] list carries the demo label", () => {
   expect(screen.getByText("Демонстрационные данные")).toBeTruthy();
 });
 
-test("[f05-campaign-list] card shows campaign details", () => {
+const cardShowsCampaignDetails = () => {
   convex.set("campaigns:get", CARD);
   open("/campaigns/c1");
   expect(screen.getByRole("heading", { level: 1, name: "Летняя акция" })).toBeTruthy();
@@ -114,7 +117,9 @@ test("[f05-campaign-list] card shows campaign details", () => {
   expect(screen.getByRole("img", { name: "Креатив" }).getAttribute("src")).toBe("/demo/creatives/placeholder-1.svg");
   expect(screen.getByRole("table").textContent).toContain("KRG-001");
   expect(screen.getByText("Демонстрационные данные")).toBeTruthy();
-});
+};
+test("[f05-campaign-list] card shows campaign details", cardShowsCampaignDetails);
+test("[c00-predeploy-hardening] card shows campaign details", cardShowsCampaignDetails);
 
 test("[f05-campaign-list] card of a deleted campaign", () => {
   vi.spyOn(console, "error").mockImplementation(() => {}); // React logs the caught render error
@@ -124,4 +129,71 @@ test("[f05-campaign-list] card of a deleted campaign", () => {
   convex.set("campaigns:list", []);
   fireEvent.click(screen.getByRole("link", { name: "К списку кампаний" }));
   expect(screen.getByTestId("path").textContent).toBe("/campaigns");
+});
+
+afterEach(() => vi.useRealTimers());
+
+const today = (date: string) => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(`${date}T12:00:00+05:00`));
+};
+const PLANNED = { ...CARD, _id: "c3", name: "Презентация автомобиля", startDate: "2026-11-10", endDate: "2026-11-20", status: "planned", logShows: 0 };
+/** The hint of a 0 log value: dimmed, readable by a screen reader. */
+const hinted = (cell: HTMLElement) => within(cell).queryByText("Журнал не смоделирован");
+
+test("[c00-predeploy-hardening] status shows as a badge", () => {
+  convex.set("campaigns:list", [ROW, { ...PLANNED, screenCount: 1 }]);
+  open("/campaigns");
+  const row = screen.getByRole("link", { name: "Презентация автомобиля" }).closest("tr")!;
+  expect(within(row).getByText("Запланирована").closest(".mantine-Badge-root")).toBeTruthy();
+  const other = screen.getByRole("link", { name: "Летняя акция" }).closest("tr")!;
+  expect(within(other).getByText("Активна").closest(".mantine-Badge-root")).toBeTruthy();
+});
+
+test("[c00-predeploy-hardening] zero log carries the not simulated hint", () => {
+  convex.set("campaigns:list", [ROW, { ...PLANNED, screenCount: 1 }]);
+  open("/campaigns");
+  const cells = (name: string) => Array.from(screen.getByRole("link", { name }).closest("tr")!.querySelectorAll("td"));
+  const zero = cells("Презентация автомобиля").find((td) => hinted(td))!;
+  expect(zero.textContent).toBe("0Журнал не смоделирован");
+  expect(cells("Летняя акция").some((td) => hinted(td))).toBe(false);
+});
+
+test("[c00-predeploy-hardening] card zero log carries the hint", () => {
+  convex.set("campaigns:get", { ...PLANNED, screens: CARD.screens.map((s) => ({ ...s, logShows: 0 })) });
+  open("/campaigns/c3");
+  // the card total and both screen rows
+  expect(screen.getAllByText("Журнал не смоделирован")).toHaveLength(3);
+  for (const row of within(screen.getByRole("table")).getAllByRole("row").slice(1)) {
+    expect(hinted(row.querySelectorAll("td")[4])!.parentElement!.textContent).toBe("0Журнал не смоделирован");
+  }
+});
+
+test("[c00-predeploy-hardening] show in schedule opens the marked schedule", () => {
+  today("2026-10-28");
+  convex.set("campaigns:get", CARD);
+  open("/campaigns/c1");
+  fireEvent.click(screen.getByRole("link", { name: "Показать в расписании" }));
+  expect(screen.getByTestId("path").textContent).toBe("/schedule?screen=s1&date=2026-10-28&campaign=c1");
+});
+
+test("[c00-predeploy-hardening] show in schedule of a campaign outside today", () => {
+  today("2026-10-28");
+  convex.set("campaigns:get", PLANNED);
+  open("/campaigns/c3");
+  fireEvent.click(screen.getByRole("link", { name: "Показать в расписании" }));
+  expect(screen.getByTestId("path").textContent).toBe("/schedule?screen=s1&date=2026-11-10&campaign=c3");
+});
+
+test("[c00-predeploy-hardening] screen row shows code and name", () => {
+  convex.set("campaigns:get", {
+    ...CARD,
+    screens: [
+      { ...CARD.screens[0], name: "Есиль" }, // a renamed screen: the code comes first
+      CARD.screens[1], // a seed name that starts with its code: the code is not repeated
+    ],
+  });
+  open("/campaigns/c1");
+  const rows = within(screen.getByRole("table")).getAllByRole("row").slice(1);
+  expect(rows.map((r) => r.querySelector("td")!.textContent)).toEqual(["AST-001 Есиль", "KRG-001 Центр"]);
 });

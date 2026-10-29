@@ -475,3 +475,15 @@ describe("show-log storage", () => {
     expect(rows.reduce((sum, r) => sum + r.shows, 0)).toBe(0);
   });
 });
+
+// «Выйти» is client-side only (src/shell/shell.test.tsx proves the click calls no function): the row stays valid.
+test("[c00-predeploy-hardening] sign out keeps the server session", async () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(Date.parse("2026-10-31T06:00:00Z"));
+  const t = setup();
+  const sessionId = await signedIn(t);
+  const rows = await t.run((ctx) => ctx.db.query("demoSessions").collect());
+  expect(rows.map((s) => s.sessionId)).toEqual([sessionId]);
+  vi.setSystemTime(Date.parse("2026-11-07T05:59:59Z"));
+  expect(await t.query(api.demo.sessionStatus, { sessionId })).toEqual({ valid: true });
+});

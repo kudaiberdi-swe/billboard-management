@@ -217,14 +217,41 @@ test("[f07-schedule] unknown screen is refused", () => {
   expect(screen.getByRole("button", { name: /10:00–11:00/ })).toBeTruthy();
 });
 
-test("[f07-schedule] campaign opened from its card is marked and its first hour opens", () => {
-  const view = open("/schedule?screen=s1&date=2026-10-30&campaign=c1");
-  // 10:00–11:00 holds c1 and opens on its own; its 2 slots are marked
+const OTHER: [string, string] = ["c2", "Открытие магазина"];
+const FROM_8 = {
+  ...DAY,
+  screen: { ...DAY.screen, workStartHour: 8 },
+  hours: [
+    { hour: 8, used: 3, slots: slots([SUMMER, OTHER, SUMMER]) },
+    { hour: 9, used: 1, slots: slots([SUMMER]) },
+    ...DAY.hours.slice(1),
+  ],
+};
+
+test("[c00-predeploy-hardening] marked campaign opens its first hour", () => {
+  convex.set("schedule:day", FROM_8);
+  open("/schedule?screen=s1&date=2026-10-30&campaign=c1");
+  // only 08:00–09:00 is open (12 slots shown), without a click
+  expect(screen.getByRole("button", { name: /08:00–09:00/ }).getAttribute("aria-expanded")).toBe("true");
+  expect(screen.getByRole("button", { name: /09:00–10:00/ }).getAttribute("aria-expanded")).toBe("false");
   expect(cells()).toHaveLength(12);
   const marked = cells().filter((c) => c.dataset.marked !== undefined);
   expect(marked).toHaveLength(2);
-  for (const c of marked) expect(within(c).getByRole("link", { name: "Летняя акция" })).toBeTruthy();
-  view.unmount();
+  for (const c of marked) {
+    expect(within(c).getByRole("link", { name: "Летняя акция" })).toBeTruthy();
+    expect(within(c).getByText("Выделенная кампания")).toBeTruthy();
+  }
+  const other = cells().find((c) => within(c).queryByRole("link", { name: "Открытие магазина" }))!;
+  expect(other.dataset.marked).toBeUndefined();
+  expect(within(other).queryByText("Выделенная кампания")).toBeNull();
+});
+
+test("[c00-predeploy-hardening] schedule without campaign marks nothing", () => {
+  convex.set("schedule:day", FROM_8);
   open("/schedule?screen=s1&date=2026-10-30");
-  expect(cells()).toHaveLength(0); // no campaign param: every hour starts closed
+  expect(screen.getAllByRole("button", { name: /\d\d:00–\d\d:00/ }).every((b) => b.getAttribute("aria-expanded") === "false")).toBe(true);
+  expect(cells()).toHaveLength(0);
+  openHour("08:00–09:00");
+  expect(cells().filter((c) => c.dataset.marked !== undefined)).toHaveLength(0);
+  expect(screen.queryByText("Выделенная кампания")).toBeNull();
 });

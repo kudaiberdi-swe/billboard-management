@@ -8,6 +8,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { api, internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import schema from "./schema";
+import crons from "./crons";
 import { SWEEP_MAX_PAGES, SWEEP_PAGE } from "./campaigns";
 import { SESSION_PAGE } from "./demo";
 import { normalizeKey, rateLimiter } from "./rateLimits";
@@ -48,15 +49,16 @@ async function seeded() {
 }
 type T = Awaited<ReturnType<typeof seeded>>["t"];
 
-async function errorCode(call: Promise<unknown>): Promise<string> {
+async function errorData(call: Promise<unknown>): Promise<{ code: string; field?: string }> {
   try {
     await call;
   } catch (e) {
-    if (e instanceof ConvexError) return (e.data as { code: string }).code;
+    if (e instanceof ConvexError) return e.data as { code: string; field?: string };
     throw e;
   }
   throw new Error("expected the call to fail");
 }
+const errorCode = async (call: Promise<unknown>) => (await errorData(call)).code;
 
 const screensOf = (t: T) => t.run((ctx) => ctx.db.query("screens").withIndex("by_code").collect());
 const regular = (screens: Doc<"screens">[]) =>
@@ -78,19 +80,38 @@ const insertCampaign = (t: T, screenIds: Id<"screens">[], startDate: string, end
 
 // ---------- KI-05: dates outside the product window ----------
 
-test("[pre-deploy-hardening] KI-05 date helpers accept only years 2000-2100 and never loop past the range", () => {
+test("[c00-predeploy-hardening] window edges are accepted", () => {
   expect(isDate("2000-01-01")).toBe(true);
   expect(isDate("2100-12-31")).toBe(true);
   expect(isDate("1999-12-31")).toBe(false);
   expect(isDate("2101-01-01")).toBe(false);
   expect(isDate("9999-12-31")).toBe(false);
   expect(() => requireDate("9999-12-31", "to")).toThrow(ConvexError);
-  expect(datesInRange("9999-12-31", "9999-12-31")).toEqual(["9999-12-31"]); // bounded by the day count
+});
+
+test("[c00-predeploy-hardening] year outside the window is refused", async () => {
+  clock("2026-10-28", 11);
+  const { t, sessionId } = await seeded();
+  for (const date of ["9999-12-31", "1999-12-31", "2101-01-01"]) {
+    const data = await errorData(t.query(api.dashboard.summary, { sessionId, from: date, to: date }));
+    expect(data.code).toBe("INVALID_INPUT");
+    expect(["from", "to"]).toContain(data.field);
+  }
+});
+
+test("[c00-predeploy-hardening] period lists each day once", () => {
   expect(datesInRange("2026-10-30", "2026-11-02")).toEqual(["2026-10-30", "2026-10-31", "2026-11-01", "2026-11-02"]);
+});
+
+test("[c00-predeploy-hardening] reversed period is empty", () => {
   expect(datesInRange("2026-11-02", "2026-10-30")).toEqual([]);
 });
 
-test("[pre-deploy-hardening] KI-05 from=to=9999-12-31 is refused with INVALID_INPUT by every date entry point", async () => {
+test("[c00-predeploy-hardening] last calendar day does not loop", () => {
+  expect(datesInRange("9999-12-31", "9999-12-31")).toEqual(["9999-12-31"]); // bounded by the day count
+});
+
+test("[c00-predeploy-hardening] far date is refused by every entry point", async () => {
   clock("2026-10-28", 11);
   const { t, sessionId } = await seeded();
   const screens = await screensOf(t);
@@ -153,35 +174,58 @@ test("[pre-deploy-hardening] KI-08 screens.list and campaigns.list stay fast at 
 
 // ---------- KI-04: the show log stays under the read limit ----------
 
-test("[pre-deploy-hardening] KI-04 simulate keeps all log rows within LOG_ROW_BUDGET", async () => {
-  clock("2026-10-28", 11);
-  const { t, sessionId } = await seeded();
-  const [s1, s2] = regular(await screensOf(t));
+/** Fills the log with `rows` rows of another seed campaign. */
+async function fillLog(t: T, rows: number, screenId: Id<"screens">) {
   const other = (await t.run((ctx) => ctx.db.query("campaigns").first()))!;
-  const existing = (await t.run((ctx) => ctx.db.query("showLog").collect())).length;
-  // Fill the log so 3 days of a 2-screen campaign still fit.
-  const filler = LOG_ROW_BUDGET - existing - 2 * 3;
+  const filler = rows - (await allLog(t)).length;
   for (let i = 0; i < filler; i += 2000) {
     await t.run(async (ctx) => {
       for (let j = i; j < Math.min(filler, i + 2000); j += 1) {
-        await ctx.db.insert("showLog", { campaignId: other._id, screenId: s1._id, date: "2026-01-01", shows: 0 });
+        await ctx.db.insert("showLog", { campaignId: other._id, screenId, date: "2026-01-01", shows: 0 });
       }
     });
   }
+}
+const allLog = (t: T) => t.run((ctx) => ctx.db.query("showLog").collect());
+
+/** 3 days of a 2-screen campaign still fit: run once. */
+async function nearlyFull() {
+  clock("2026-10-28", 11);
+  const { t, sessionId } = await seeded();
+  const [s1, s2] = regular(await screensOf(t));
+  await fillLog(t, LOG_ROW_BUDGET - 2 * 3, s1._id);
   const campaignId = await insertCampaign(t, [s1._id, s2._id], "2026-10-01", "2026-10-31");
   const result = await t.mutation(api.showLog.simulate, { sessionId, campaignId });
+  return { t, sessionId, campaignId, result };
+}
+
+test("[c00-predeploy-hardening] run keeps the latest days that fit", async () => {
+  const { t, result } = await nearlyFull();
   expect(result).toEqual({ rows: 6, from: "2026-10-26", to: "2026-10-28" });
-  expect(await t.run(async (ctx) => (await ctx.db.query("showLog").collect()).length)).toBe(LOG_ROW_BUDGET);
+  expect((await allLog(t)).length).toBe(LOG_ROW_BUDGET);
+}, 120_000);
 
-  // Rerun of the same campaign: its own rows do not count against it.
+test("[c00-predeploy-hardening] rerun does not count its own rows", async () => {
+  const { t, sessionId, campaignId, result } = await nearlyFull();
   expect(await t.mutation(api.showLog.simulate, { sessionId, campaignId })).toEqual(result);
+  expect((await allLog(t)).length).toBe(LOG_ROW_BUDGET);
+}, 120_000);
 
-  // A full log refuses a new run and writes nothing.
+test("[c00-predeploy-hardening] full log refuses the run", async () => {
+  clock("2026-10-28", 11);
+  const { t, sessionId } = await seeded();
+  const [s1] = regular(await screensOf(t));
+  await fillLog(t, LOG_ROW_BUDGET, s1._id);
   const full = await insertCampaign(t, [s1._id], "2026-10-01", "2026-10-31");
-  expect(await errorCode(t.mutation(api.showLog.simulate, { sessionId, campaignId: full }))).toBe("INVALID_INPUT");
+  const before = await allLog(t);
+  expect(await errorData(t.mutation(api.showLog.simulate, { sessionId, campaignId: full }))).toMatchObject({
+    code: "INVALID_INPUT",
+    field: "campaignId",
+  });
   expect(
     await t.run((ctx) => ctx.db.query("showLog").withIndex("by_campaign", (q) => q.eq("campaignId", full)).collect()),
   ).toEqual([]);
+  expect(await allLog(t)).toEqual(before);
 }, 120_000);
 
 test("[pre-deploy-hardening] KI-04 dashboard log shows count only the selection, as before", async () => {
@@ -200,7 +244,7 @@ test("[pre-deploy-hardening] KI-04 dashboard log shows count only the selection,
 
 // ---------- KI-03: orphan upload sweep walks the whole backlog ----------
 
-test("[pre-deploy-hardening] KI-03 orphan sweep pages past referenced files until no old orphan is left", async () => {
+test("[c00-predeploy-hardening] sweep pages past referenced files", async () => {
   clock("2026-10-28", 11, true);
   const { t, sessionId } = await seeded();
   const store = () => t.run((ctx) => ctx.storage.store(new Blob([new Uint8Array(16)], { type: "video/mp4" })));
@@ -241,7 +285,7 @@ test("[pre-deploy-hardening] KI-03 orphan sweep pages past referenced files unti
 
 // ---------- KI-06: expired sessions and old rate-limit rows ----------
 
-test("[pre-deploy-hardening] KI-06 daily purge deletes only expired sessions, page by page", async () => {
+test("[c00-predeploy-hardening] purge deletes only expired sessions", async () => {
   clock("2026-10-28", 11, true);
   const t = convexTest(schema, modules);
   rateLimiterTest.register(t);
@@ -257,9 +301,10 @@ test("[pre-deploy-hardening] KI-06 daily purge deletes only expired sessions, pa
   const left = await t.run((ctx) => ctx.db.query("demoSessions").collect());
   expect(left).toHaveLength(total / 2);
   expect(left.every((s) => s.expiresAt > now)).toBe(true);
+  expect(await t.query(api.demo.sessionStatus, { sessionId: left[0].sessionId })).toEqual({ valid: true });
 });
 
-test("[pre-deploy-hardening] KI-06 daily cleanup drops rate-limit rows older than 1 hour", async () => {
+test("[c00-predeploy-hardening] cleanup drops rows older than one hour", async () => {
   clock("2026-10-28", 11, true);
   const t = convexTest(schema, modules);
   rateLimiterTest.register(t);
@@ -276,4 +321,12 @@ test("[pre-deploy-hardening] KI-06 daily cleanup drops rate-limit rows older tha
   await t.finishAllScheduledFunctions(vi.runAllTimers);
   expect(await stamp(old)).toBe(0); // row gone: a missing row reads as ts 0
   expect(await stamp(recent)).toBeGreaterThan(0);
+});
+
+test("[c00-predeploy-hardening] three daily jobs are registered", () => {
+  expect(crons.crons).toEqual({
+    "sweep orphan uploads": { name: "campaigns:sweepOrphanUploads", args: [{}], schedule: { type: "daily", hourUTC: 21, minuteUTC: 0 } },
+    "purge expired sessions": { name: "demo:purgeExpiredSessions", args: [{}], schedule: { type: "daily", hourUTC: 21, minuteUTC: 10 } },
+    "clear old rate-limit rows": { name: "demo:clearOldRateLimits", args: [{}], schedule: { type: "daily", hourUTC: 21, minuteUTC: 20 } },
+  });
 });

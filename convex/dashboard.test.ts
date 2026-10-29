@@ -102,7 +102,7 @@ const summaryOf = (t: T, sessionId: string, a: { from: string; to: string; city?
   t.query(api.dashboard.summary, { sessionId, ...a });
 
 describe("[f02-dashboard] dashboard.summary", () => {
-  test("[f02-dashboard] cards show the network values", async () => {
+  const cardsShowTheNetworkValues = async () => {
     const { t, sessionId } = await seeded();
     const data = await load(t);
     const r = await summaryOf(t, sessionId, WEEK);
@@ -120,9 +120,11 @@ describe("[f02-dashboard] dashboard.summary", () => {
     expect(r.contacts).toBeGreaterThan(0);
     expect(r.looks).toBeGreaterThan(0);
     expectMatches(r, expected(data, data.screens, WEEK.from, WEEK.to));
-  });
+  };
+  test("[f02-dashboard] cards show the network values", cardsShowTheNetworkValues);
+  test("[c00-predeploy-hardening] cards show the network values", cardsShowTheNetworkValues);
 
-  test("[f02-dashboard] screen looks card sums looks", async () => {
+  const screenLooksCardSumsLooks = async () => {
     const { t, sessionId } = await seeded();
     const data = await load(t);
     const sel = data.screens.filter((s) => s.city === "karaganda");
@@ -132,16 +134,20 @@ describe("[f02-dashboard] dashboard.summary", () => {
     expect(r.looks).toBe(cameraLooks);
     const noCamera = sel.find((s) => !s.hasCamera)!;
     expect((await summaryOf(t, sessionId, { ...WEEK, screenId: noCamera._id })).looks).toBe(0);
-  });
+  };
+  test("[f02-dashboard] screen looks card sums looks", screenLooksCardSumsLooks);
+  test("[c00-predeploy-hardening] screen looks card sums looks", screenLooksCardSumsLooks);
 
-  test("[f02-dashboard] no session is refused", async () => {
+  const noSessionIsRefused = async () => {
     const { t } = await seeded();
     const expired = await session(t, Date.now() + 1000);
     vi.setSystemTime(NOW + 2000);
     for (const sessionId of [crypto.randomUUID(), "", expired]) {
       expect((await errorData(summaryOf(t, sessionId, WEEK))).code).toBe("UNAUTHENTICATED");
     }
-  });
+  };
+  test("[f02-dashboard] no session is refused", noSessionIsRefused);
+  test("[c00-predeploy-hardening] no session is refused", noSessionIsRefused);
 
   test("[f02-dashboard] planned and log shows are separate cards", async () => {
     const { t, sessionId } = await seeded();
@@ -313,7 +319,7 @@ describe("[f02-dashboard] dashboard.summary", () => {
 });
 
 describe("[f02-dashboard] dashboard.notifications", () => {
-  test("[f02-dashboard] offline screen notification", async () => {
+  const offlineScreenNotification = async () => {
     const { t, sessionId } = await seeded();
     const data = await load(t);
     const list = await t.query(api.dashboard.notifications, { sessionId });
@@ -321,9 +327,11 @@ describe("[f02-dashboard] dashboard.notifications", () => {
     expect(offline.length).toBeGreaterThan(0);
     for (const s of offline) expect(list).toContainEqual({ kind: "screen_offline", refId: s._id, name: s.name });
     expect(list.filter((n) => n.kind === "screen_offline")).toHaveLength(offline.length);
-  });
+  };
+  test("[f02-dashboard] offline screen notification", offlineScreenNotification);
+  test("[c00-predeploy-hardening] offline screen notification", offlineScreenNotification);
 
-  test("[f02-dashboard] ending campaign notification", async () => {
+  const endingCampaignNotification = async () => {
     const { t, sessionId } = await seeded();
     const list = await t.query(api.dashboard.notifications, { sessionId });
     // «Осенняя распродажа» ends today + 2 days in the seed
@@ -339,9 +347,11 @@ describe("[f02-dashboard] dashboard.notifications", () => {
     // network-wide: the list starts with every offline screen, then the ending campaigns
     const kinds = (await t.query(api.dashboard.notifications, { sessionId })).map((n) => n.kind);
     expect(kinds.indexOf("campaign_ending")).toBeGreaterThan(kinds.lastIndexOf("screen_offline"));
-  });
+  };
+  test("[f02-dashboard] ending campaign notification", endingCampaignNotification);
+  test("[c00-predeploy-hardening] ending campaign notification", endingCampaignNotification);
 
-  test("[f02-dashboard] campaign ending later has no notification", async () => {
+  const campaignEndingLaterHasNoNotification = async () => {
     const { t, sessionId } = await seeded();
     await t.run((ctx) =>
       ctx.db.insert("campaigns", {
@@ -352,14 +362,18 @@ describe("[f02-dashboard] dashboard.notifications", () => {
     const names = (await t.query(api.dashboard.notifications, { sessionId })).map((n) => n.name);
     expect(names).not.toContain("Заканчивается через 4 дня");
     expect(names).not.toContain("Новый тариф"); // ended 10 days ago
-  });
+  };
+  test("[f02-dashboard] campaign ending later has no notification", campaignEndingLaterHasNoNotification);
+  test("[c00-predeploy-hardening] campaign ending later has no notification", campaignEndingLaterHasNoNotification);
 
-  test("[f02-dashboard] notifications need a session", async () => {
+  const notificationsNeedASession = async () => {
     const { t } = await seeded();
     const expired = await session(t, Date.now() + 1000);
     vi.setSystemTime(NOW + 2000);
     for (const sessionId of [crypto.randomUUID(), "", expired]) {
       expect((await errorData(t.query(api.dashboard.notifications, { sessionId }))).code).toBe("UNAUTHENTICATED");
     }
-  });
+  };
+  test("[f02-dashboard] notifications need a session", notificationsNeedASession);
+  test("[c00-predeploy-hardening] notifications need a session", notificationsNeedASession);
 });

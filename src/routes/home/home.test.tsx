@@ -106,8 +106,20 @@ async function pick(label: string, option: string) {
   fireEvent.click(await screen.findByRole("option", { name: option }));
 }
 
-test("[f02-dashboard] cards show the network values", () => {
+const cardsShowTheNetworkValues = () => {
   open();
+  // exactly 8 cards, in their order (2 rows of 4)
+  const cards = screen.getAllByRole("group").filter((g) => g.hasAttribute("aria-labelledby"));
+  expect(cards.map((g) => document.getElementById(g.getAttribute("aria-labelledby")!)!.textContent)).toEqual([
+    "Экраны в сети",
+    "Онлайн / офлайн",
+    "Активные кампании",
+    "Занятость рекламного инвентаря",
+    "Запланированные показы",
+    "Показы по журналу",
+    "Оценочные контакты с кампанией",
+    "Взгляды на экран",
+  ]);
   expect(value("Экраны в сети")).toBe("100");
   // «онлайн» and «офлайн» share one card: 97 / 3 sums to 100
   expect(value("Онлайн / офлайн")).toBe("97 / 3");
@@ -116,7 +128,9 @@ test("[f02-dashboard] cards show the network values", () => {
   for (const name of ["Запланированные показы", "Показы по журналу", "Оценочные контакты с кампанией", "Взгляды на экран"]) {
     expect(value(name)).toMatch(/\d/);
   }
-});
+};
+test("[f02-dashboard] cards show the network values", cardsShowTheNetworkValues);
+test("[c00-predeploy-hardening] cards show the network values", cardsShowTheNetworkValues);
 
 test("[f02-dashboard] planned and log shows are separate cards", () => {
   open();
@@ -206,7 +220,7 @@ test("[f02-dashboard] unknown billboard is refused", () => {
   expect(screen.getByRole("combobox", { name: "Билборд" })).toBeTruthy();
 });
 
-test("[f02-dashboard] offline screen notification", () => {
+const offlineScreenNotification = () => {
   convex.set("dashboard:notifications", [{ kind: "screen_offline", refId: "krg1", name: "KRG-001 Центр" }]);
   open("/?city=astana");
   const list = region("Уведомления");
@@ -214,34 +228,47 @@ test("[f02-dashboard] offline screen notification", () => {
   expect(within(list).getByText("KRG-001 Центр")).toBeTruthy();
   // Network-wide: the notifications query takes no filter.
   expect(convex.calls.find((c) => c.name === "dashboard:notifications")!.args).not.toHaveProperty("city");
-});
+};
+test("[f02-dashboard] offline screen notification", offlineScreenNotification);
+test("[c00-predeploy-hardening] offline screen notification", offlineScreenNotification);
 
-test("[f02-dashboard] offline screens are one group with links; ending campaigns link to their cards", () => {
+test("[c00-predeploy-hardening] offline screens form one linked group", () => {
   convex.set("dashboard:notifications", [
     { kind: "screen_offline", refId: "krg1", name: "KRG-001 Центр" },
     { kind: "screen_offline", refId: "krg2", name: "KRG-002 Север" },
-    { kind: "campaign_ending", refId: "c2", name: "Открытие магазина" },
   ]);
   open();
   const list = within(region("Уведомления"));
   expect(list.getAllByText("Экран недоступен")).toHaveLength(1);
+  expect(list.getByText("Экран недоступен").closest("li")!.textContent).toContain("2");
+  expect(list.getByRole("link", { name: "KRG-001 Центр" }).getAttribute("href")).toBe("/billboards/krg1");
   expect(list.getByRole("link", { name: "KRG-002 Север" }).getAttribute("href")).toBe("/billboards/krg2");
   expect(list.getByRole("link", { name: "Все недоступные экраны" }).getAttribute("href")).toBe("/billboards?status=offline");
-  expect(list.getByRole("link", { name: "Открытие магазина" }).getAttribute("href")).toBe("/campaigns/c2");
 });
 
-test("[f02-dashboard] ending campaign notification", () => {
+test("[c00-predeploy-hardening] ending campaign links to its card", () => {
+  convex.set("dashboard:notifications", [{ kind: "campaign_ending", refId: "c2", name: "Открытие магазина" }]);
+  open();
+  fireEvent.click(within(region("Уведомления")).getByRole("link", { name: "Открытие магазина" }));
+  expect(url()).toBe("/campaigns/c2");
+});
+
+const endingCampaignNotification = () => {
   convex.set("dashboard:notifications", [{ kind: "campaign_ending", refId: "c2", name: "Открытие магазина" }]);
   open();
   const list = region("Уведомления");
   expect(within(list).getByText("Кампания скоро завершится")).toBeTruthy();
   expect(within(list).getByText("Открытие магазина")).toBeTruthy();
-});
+};
+test("[f02-dashboard] ending campaign notification", endingCampaignNotification);
+test("[c00-predeploy-hardening] ending campaign notification", endingCampaignNotification);
 
-test("[f02-dashboard] campaign ending later has no notification", () => {
+const campaignEndingLaterHasNoNotification = () => {
   open();
   expect(within(region("Уведомления")).getByText("Нет уведомлений")).toBeTruthy();
-});
+};
+test("[f02-dashboard] campaign ending later has no notification", campaignEndingLaterHasNoNotification);
+test("[c00-predeploy-hardening] campaign ending later has no notification", campaignEndingLaterHasNoNotification);
 
 test("loading regions are busy until data arrives", () => {
   convex.set("dashboard:summary", undefined);

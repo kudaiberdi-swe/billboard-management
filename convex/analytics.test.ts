@@ -132,12 +132,14 @@ test("[f08-audience-analytics] vehicles only where measured", async () => {
   expect(without.audience!.vehicles).toBeNull();
 });
 
-test("[f08-audience-analytics] screen without a camera", async () => {
+const screenWithoutACamera = async () => {
   const { t, ids } = await setup({ hasCamera: false, hasVehicleMetric: false });
   const r = await period(t, ids[0]);
   expect(r.screen.hasCamera).toBe(false);
   expect(r.audience).toBeNull();
-});
+};
+test("[f08-audience-analytics] screen without a camera", screenWithoutACamera);
+test("[c00-predeploy-hardening] screen without a camera", screenWithoutACamera);
 
 test("[f08-audience-analytics] age groups and gender", async () => {
   const { t, ids, doc } = await setup();

@@ -144,17 +144,21 @@ test("[f08-audience-analytics] vehicles only where measured", async () => {
   expect(screen.queryByRole("group", { name: "Трафик: транспорт" })).toBeNull();
 });
 
-test("[f08-audience-analytics] screen without a camera", () => {
+const screenWithoutACamera = () => {
   open("/analytics?screen=s3");
   // empty state: a title and a sentence that names the screen and says «нет камеры»
   expect(screen.getByRole("heading", { name: "Камеры нет" })).toBeTruthy();
-  expect(screen.getByText(/нет камеры, поэтому аналитика аудитории недоступна/)).toBeTruthy();
+  expect(screen.getByText(/нет камеры, поэтому аналитика аудитории недоступна/).textContent).toBe(
+    "На экране KRG-001 Центр нет камеры, поэтому аналитика аудитории недоступна. Выберите экран с камерой.",
+  );
   expect(screen.queryAllByRole("group")).toHaveLength(0);
   expect(screen.queryByRole("region", { name: "Аудитория и взгляды по часам" })).toBeNull();
   expect(screen.queryByRole("region", { name: "Возраст (предположительно)" })).toBeNull();
   expect(screen.queryByRole("region", { name: "Пол (предположительно)" })).toBeNull();
   expect(screen.queryByText(DEMO)).toBeNull();
-});
+};
+test("[f08-audience-analytics] screen without a camera", screenWithoutACamera);
+test("[c00-predeploy-hardening] screen without a camera", screenWithoutACamera);
 
 test("[f08-audience-analytics] age groups and gender", () => {
   open();

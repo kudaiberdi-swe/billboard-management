@@ -331,7 +331,7 @@ test("[f06-campaign-create] conflict is re-checked on save", async () => {
   expect(await campaigns(t)).toHaveLength(2);
 });
 
-test("[f06-campaign-create] conflict blocks the save", async () => {
+const conflictBlocksTheSave = async () => {
   const { t, sessionId, id } = await setup();
   await existing(t, [id("AST-001")]);
   const before = (await campaigns(t)).length;
@@ -347,7 +347,9 @@ test("[f06-campaign-create] conflict blocks the save", async () => {
   expect(err.code).toBe("SLOT_CONFLICT");
   expect(err.conflicts?.length).toBeGreaterThan(0);
   expect(await campaigns(t)).toHaveLength(before + 2);
-});
+};
+test("[f06-campaign-create] conflict blocks the save", conflictBlocksTheSave);
+test("[c00-predeploy-hardening] conflict blocks the save", conflictBlocksTheSave);
 
 // ---------- create: shows and persistence ----------
 

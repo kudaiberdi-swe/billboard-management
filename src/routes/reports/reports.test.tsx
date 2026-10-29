@@ -151,7 +151,7 @@ test("[f09-reports] report has two separate blocks", () => {
   }
 });
 
-test("[f09-reports] report shows the demo disclaimer", () => {
+const reportShowsTheDemoDisclaimer = () => {
   open();
   const disclaimer = screen.getByText(DISCLAIMER);
   // the demo label sits on each simulated value; the disclaimer banner carries the sentence alone
@@ -163,6 +163,21 @@ test("[f09-reports] report shows the demo disclaimer", () => {
     expect(disclaimer.compareDocumentPosition(region(name)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   }
   expect(disclaimer.closest(".no-print")).toBeNull();
+};
+test("[f09-reports] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
+test("[c00-predeploy-hardening] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
+
+test("[c00-predeploy-hardening] demo label sits on the simulated values", () => {
+  open();
+  for (const name of ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"]) {
+    expect(within(screen.getByRole("group", { name })).getByText("Демонстрационные данные")).toBeTruthy();
+  }
+  const banner = screen.getByTestId("report-disclaimer");
+  expect(within(banner).getByText(DISCLAIMER)).toBeTruthy();
+  expect(within(banner).queryByText("Демонстрационные данные")).toBeNull();
+  for (const next of [banner.previousElementSibling, banner.nextElementSibling]) {
+    expect(next!.textContent).not.toContain("Демонстрационные данные");
+  }
 });
 
 test("[f09-reports] zero plan shows a dash", () => {

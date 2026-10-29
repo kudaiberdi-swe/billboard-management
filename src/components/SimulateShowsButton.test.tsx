@@ -68,7 +68,7 @@ test("[f10-simulate-shows] button shows the result", async () => {
   expect(button().hasAttribute("disabled")).toBe(false);
 });
 
-test("[f10-simulate-shows] not started campaign is refused", async () => {
+const notStartedCampaignIsRefused = async () => {
   convex.set("campaigns:get", { ...CARD, status: "planned", name: "Презентация автомобиля" });
   convex.mutations["showLog:simulate"] = vi.fn().mockRejectedValue(new ConvexError({ code: "CAMPAIGN_NOT_STARTED" }));
   open();
@@ -77,14 +77,29 @@ test("[f10-simulate-shows] not started campaign is refused", async () => {
     "Кампания ещё не началась. Показы по журналу появятся после даты начала.",
   );
   expect(screen.queryByRole("status")).toBeNull();
-});
+};
+test("[f10-simulate-shows] not started campaign is refused", notStartedCampaignIsRefused);
+test("[c00-predeploy-hardening] not started campaign is refused", notStartedCampaignIsRefused);
 
-test("[predeploy] full show log gets its own message", async () => {
+test("[c00-predeploy-hardening] full log shows the log full message", async () => {
   convex.mutations["showLog:simulate"] = vi.fn().mockRejectedValue(new ConvexError({ code: "INVALID_INPUT", field: "campaignId" }));
   open();
   fireEvent.click(button());
   expect((await screen.findByRole("alert")).textContent).toBe(
     "Журнал показов заполнен. Сбросьте демо, чтобы смоделировать показы снова.",
   );
+  expect(screen.queryByText("Проверьте поле: campaignId.")).toBeNull();
   expect(button().hasAttribute("disabled")).toBe(false);
+});
+
+test("[c00-predeploy-hardening] not started note turns the button off", async () => {
+  convex.set("campaigns:get", { ...CARD, status: "planned", name: "Презентация автомобиля" });
+  convex.mutations["showLog:simulate"] = vi.fn().mockRejectedValue(new ConvexError({ code: "CAMPAIGN_NOT_STARTED" }));
+  open();
+  fireEvent.click(button());
+  const note = await screen.findByRole("alert");
+  // Mantine puts the alert colour in its CSS variables: grey, not red
+  expect(note.getAttribute("style")).toContain("gray");
+  expect(note.getAttribute("style")).not.toContain("red");
+  expect(button().hasAttribute("disabled")).toBe(true);
 });
