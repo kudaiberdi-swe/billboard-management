@@ -178,7 +178,7 @@ test("[base-contract] reset confirmed", async () => {
   expect(screen.getByRole("heading", { level: 1, name: "Главная" })).toBeTruthy();
 });
 
-test("sign-out forgets the session and returns to the password screen", async () => {
+test("[base-contract] sign-out forgets the session and returns to the password screen", async () => {
   open("/campaigns");
   const before = localStorage.getItem("billboard.sessionId");
   expect(before).toBeTruthy();

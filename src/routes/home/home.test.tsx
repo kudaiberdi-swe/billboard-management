@@ -216,7 +216,7 @@ test("[f02-dashboard] offline screen notification", () => {
   expect(convex.calls.find((c) => c.name === "dashboard:notifications")!.args).not.toHaveProperty("city");
 });
 
-test("offline screens are one group with links; ending campaigns link to their cards", () => {
+test("[f02-dashboard] offline screens are one group with links; ending campaigns link to their cards", () => {
   convex.set("dashboard:notifications", [
     { kind: "screen_offline", refId: "krg1", name: "KRG-001 Центр" },
     { kind: "screen_offline", refId: "krg2", name: "KRG-002 Север" },

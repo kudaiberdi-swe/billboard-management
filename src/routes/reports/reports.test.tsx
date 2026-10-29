@@ -154,8 +154,11 @@ test("[f09-reports] report has two separate blocks", () => {
 test("[f09-reports] report shows the demo disclaimer", () => {
   open();
   const disclaimer = screen.getByText(DISCLAIMER);
-  // the demo label sits on the simulated values; the disclaimer banner carries the sentence alone
-  expect(screen.getAllByText("Демонстрационные данные").length).toBeGreaterThan(0);
+  // the demo label sits on each simulated value; the disclaimer banner carries the sentence alone
+  for (const name of ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"]) {
+    expect(within(screen.getByRole("group", { name })).getByText("Демонстрационные данные")).toBeTruthy();
+  }
+  expect(within(screen.getByRole("group", { name: "Запланированные показы" })).queryByText("Демонстрационные данные")).toBeNull();
   for (const name of ["Результаты размещения", "Аналитика экранов"]) {
     expect(disclaimer.compareDocumentPosition(region(name)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   }

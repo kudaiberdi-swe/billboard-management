@@ -217,7 +217,7 @@ test("[f07-schedule] unknown screen is refused", () => {
   expect(screen.getByRole("button", { name: /10:00–11:00/ })).toBeTruthy();
 });
 
-test("campaign opened from its card is marked and its first hour opens", () => {
+test("[f07-schedule] campaign opened from its card is marked and its first hour opens", () => {
   const view = open("/schedule?screen=s1&date=2026-10-30&campaign=c1");
   // 10:00–11:00 holds c1 and opens on its own; its 2 slots are marked
   expect(cells()).toHaveLength(12);
