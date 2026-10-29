@@ -1,7 +1,7 @@
 # audience-screen Specification
 
 ## Purpose
-The «Аналитика аудитории» section: the simulated audience of one screen for a selected period, with demo labels, estimate notes and no personal data.
+The «Аналитика аудитории» section: the simulated audience of one screen for a selected period, under the shell's global demo notice, with estimate notes and no personal data.
 
 ## Requirements
 
@@ -78,9 +78,11 @@ The section and its query SHALL return and show only aggregate numbers and scree
 - **THEN** the query result holds only the screen code, name, city, camera and vehicle flags and numbers
 - **AND** the page shows no image of a person
 
-### Requirement: Demo label on all values
-Every block with simulated values (value cards, chart, age and gender) SHALL show «Демонстрационные данные».
+### Requirement: Global notice covers audience values
+The blocks with simulated values (value cards, chart, age and gender) SHALL carry no «Демонстрационные данные» label of their own; the app-shell global notice «Все показатели — демонстрационные данные» marks them. The estimate notes stay: «предположительно» on gender and the algorithm-estimate note on age and gender.
 
-#### Scenario: all values carry the demo label
+#### Scenario: audience values carry no demo label
 - **WHEN** R-1 opens «Аналитика аудитории» for a camera screen
-- **THEN** the value cards, the chart and the age and gender blocks each show «Демонстрационные данные»
+- **THEN** the value cards, the chart and the age and gender blocks show no «Демонстрационные данные» label
+- **AND** the page shows the global notice «Все показатели — демонстрационные данные»
+- **AND** the age and gender blocks still show the algorithm-estimate note

@@ -37,7 +37,7 @@ Honest proof. Planned shows, shows by the log and screen audience are three diff
 - UI in Russian only; currency tenge; no prices in the demo.
 - 6 sections: «Главная», «Билборды», «Рекламные кампании», «Расписание», «Аналитика аудитории», «Отчёты».
 - Slot model for the demo: 60-second cycle of 12 slots of 5 seconds; no double booking of a slot on one screen in one hour.
-- Every simulated value carries «Демонстрационные данные»; the report carries «Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват».
+- One global notice «Все показатели — демонстрационные данные» sits at the top of every signed-in page (and on the printed report); values carry no per-value label. The report also carries «Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват».
 - Terms kept apart: «трафик», «взгляд на экран», «показ рекламы», «контакт с кампанией».
 - Age and gender shown as an algorithm estimate («предположительно»). No photos of people, names or personal data.
 - Full scope and decisions: `docs/SoW.md`.

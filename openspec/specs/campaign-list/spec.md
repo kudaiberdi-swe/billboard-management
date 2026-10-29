@@ -78,13 +78,6 @@ Seed campaigns SHALL use synthetic advertiser names that start with «Demo »; n
 - **WHEN** the list is read right after «Сбросить демо»
 - **THEN** every advertiser starts with «Demo »
 
-### Requirement: Demo label on log values
-The section SHALL show «Демонстрационные данные» because shows by the log are simulated.
-
-#### Scenario: list carries the demo label
-- **WHEN** the admin opens «Рекламные кампании»
-- **THEN** the page shows «Демонстрационные данные»
-
 ### Requirement: List needs a demo session
 `campaigns.list` SHALL refuse a call without a valid demo session with `UNAUTHENTICATED`.
 
@@ -92,3 +85,11 @@ The section SHALL show «Демонстрационные данные» because
 - **WHEN** `campaigns.list` is called with an unknown or expired session id
 - **THEN** it fails with `UNAUTHENTICATED`
 - **AND** no campaign data is returned
+
+### Requirement: Global notice covers log values
+The shows by the log are simulated. The section SHALL mark them only through the app-shell global notice «Все показатели — демонстрационные данные»; the log column and its values SHALL carry no label of their own. Planned shows and shows by the log stay separate columns.
+
+#### Scenario: log values carry no demo label
+- **WHEN** the admin opens «Рекламные кампании»
+- **THEN** the page shows the global notice «Все показатели — демонстрационные данные»
+- **AND** no row, column header or value shows a «Демонстрационные данные» label

@@ -71,22 +71,8 @@ No label, title or note of the report SHALL call the screen traffic, looks or co
 - **WHEN** the strings of the `reports` namespace are checked
 - **THEN** no string except the disclaimer contains «подтвержд» or «охват»
 
-### Requirement: Demo disclaimer
-The report SHALL show, at its top and in print, «Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват» verbatim, with no label next to it. Each simulated value of the report (shows by the log, plan completion, traffic, looks, contacts) SHALL carry the label «Демонстрационные данные».
-
-#### Scenario: report shows the demo disclaimer
-- **WHEN** the admin opens any campaign report
-- **THEN** it shows «Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват» above both blocks
-- **AND** it shows «Демонстрационные данные»
-- **AND** the disclaimer is not hidden in print
-
-#### Scenario: demo label sits on the simulated values
-- **WHEN** the admin opens any campaign report
-- **THEN** the values shows by the log, plan completion, traffic, looks and contacts each carry «Демонстрационные данные»
-- **AND** the disclaimer has no «Демонстрационные данные» label next to it
-
 ### Requirement: Browser print
-The button «Печать / сохранить в PDF» SHALL open the browser print dialog. The print stylesheet SHALL hide the menu, the filters and the button, print A4 portrait, and keep each block on one page where it fits.
+The button «Печать / сохранить в PDF» SHALL open the browser print dialog. The print stylesheet SHALL hide the menu, the filters and the button, print A4 portrait, and keep each block on one page where it fits. The print SHALL keep both the global notice «Все показатели — демонстрационные данные» and the disclaimer.
 
 #### Scenario: print button opens the print dialog
 - **WHEN** the admin clicks «Печать / сохранить в PDF»
@@ -96,6 +82,11 @@ The button «Печать / сохранить в PDF» SHALL open the browser p
 - **WHEN** the report page is rendered for print media
 - **THEN** the menu, the filters and the «Печать / сохранить в PDF» button are hidden
 - **AND** the disclaimer and both blocks are visible
+
+#### Scenario: print view keeps the global notice
+- **WHEN** the report page is rendered for print media
+- **THEN** the global notice «Все показатели — демонстрационные данные» is visible above the disclaimer
+- **AND** the notice carries no print-hiding class
 
 ### Requirement: Seeded report is complete
 A seeded campaign with a seeded show log SHALL have a full report right after «Сбросить демо».
@@ -129,3 +120,17 @@ A seeded campaign with a seeded show log SHALL have a full report right after «
 #### Scenario: billboard outside the campaign is refused
 - **WHEN** `reports.campaign` is called with a `screenId` that is not a screen of the campaign
 - **THEN** it fails with `INVALID_INPUT` and `field` "screenId"
+
+### Requirement: Report disclaimer under the global notice
+The report SHALL show the disclaimer «Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват» verbatim at its top and in print, with no label next to it. Its simulated values SHALL carry no «Демонстрационные данные» label; the disclaimer and the global notice mark them. The two blocks stay separate.
+
+#### Scenario: report shows the demo disclaimer
+- **WHEN** the admin opens any campaign report
+- **THEN** it shows «Демонстрационный отчёт. Показатели являются смоделированными и не подтверждают фактические показы или охват» above both blocks
+- **AND** the page shows the global notice «Все показатели — демонстрационные данные»
+- **AND** the disclaimer is not hidden in print
+
+#### Scenario: report values carry no demo label
+- **WHEN** the admin opens any campaign report
+- **THEN** the values shows by the log, plan completion, traffic, looks and contacts carry no «Демонстрационные данные» label
+- **AND** the disclaimer has no «Демонстрационные данные» label next to it

@@ -1,7 +1,7 @@
 # app-shell Specification
 
 ## Purpose
-Defines the shared frame of the web app: the password screen, the left menu with the 6 sections, «Сбросить демо», the «Демонстрационные данные» label and the Russian strings module that all screens use.
+Defines the shared frame of the web app: the password screen, the left menu with the 6 sections, «Сбросить демо», the global demo notice «Все показатели — демонстрационные данные» and the Russian strings module that all screens use.
 
 ## Requirements
 
@@ -54,13 +54,6 @@ The menu SHALL have the button «Сбросить демо». It SHALL ask for c
 - **WHEN** the visitor confirms in the dialog
 - **THEN** `demo.reset` runs and the app shows «Главная» with the seed data
 
-### Requirement: Demo label
-The app SHALL provide one label component with the text «Демонстрационные данные» that every screen with simulated values uses.
-
-#### Scenario: demo label shows the verbatim text
-- **WHEN** the demo label component renders
-- **THEN** it shows exactly «Демонстрационные данные»
-
 ### Requirement: Russian strings module and error texts
 All UI text SHALL come from one shared Russian strings module. The backend SHALL return error codes and data, never Russian text; the front SHALL turn each code into its text from the module, and show the `UNKNOWN` text for any other error.
 
@@ -92,3 +85,23 @@ The menu SHALL have the button «Выйти» under «Сбросить демо�
 - **WHEN** a signed-in visitor clicks «Выйти»
 - **THEN** the click deletes no session row on the server
 - **AND** `demo.sessionStatus` for the old session id still returns `{ valid: true }` until its expiry
+
+### Requirement: Global demo notice
+The shell SHALL show one quiet notice «Все показатели — демонстрационные данные» (secondary text, no colour badge, no close button) once, at the top of the content area of every signed-in page, including in print. The password screen SHALL NOT show it. No page SHALL label a value, card, column, header or block with «Демонстрационные данные».
+
+#### Scenario: notice shows the verbatim text
+- **WHEN** a signed-in visitor opens any page of the app
+- **THEN** the notice shows exactly «Все показатели — демонстрационные данные»
+
+#### Scenario: notice shows once on every signed-in page
+- **WHEN** a signed-in visitor opens each of `/`, `/billboards`, `/campaigns`, `/schedule`, `/analytics`, `/reports`, the card of a screen, the card of a campaign and `/campaigns/new`
+- **THEN** each page shows the notice «Все показатели — демонстрационные данные» exactly once, above the page content
+
+#### Scenario: password screen has no notice
+- **WHEN** a visitor without a valid session opens any app route
+- **THEN** the password screen shows no «Все показатели — демонстрационные данные» notice
+
+#### Scenario: no per-value demo label
+- **WHEN** a signed-in visitor opens any page of the app
+- **THEN** no element shows the standalone text «Демонстрационные данные»
+- **AND** the only demonstration-data text on the page is the global notice, plus the report disclaimer on «Отчёты»
