@@ -7,10 +7,10 @@ import { t, type StringsKey } from "../../../shared/strings";
 import { DemoLabel } from "../../components/DemoLabel";
 import { SimulateShowsButton } from "../../components/SimulateShowsButton";
 import { errorCode, errorText } from "../../errors";
-import { formatHour, formatNumber, formatPeriod } from "../../format";
+import { LogShows } from "../../components/LogShows";
+import { formatHour, formatNumber, formatPeriod, screenTitle } from "../../format";
 import { useGuardedQuery } from "../../session";
 import { CAMPAIGN_STATUS_COLOR, TERM_WIDTH } from "../../theme";
-import { LogShows } from "../Campaigns";
 
 const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 
@@ -103,7 +103,7 @@ function Card({ id }: { id: string }) {
         <Table.Tbody>
           {c.screens.map((s) => (
             <Table.Tr key={s._id}>
-              <Table.Td>{s.name}</Table.Td>
+              <Table.Td>{screenTitle(s)}</Table.Td>
               <Table.Td>{t("ru", `cities.${s.city}`)}</Table.Td>
               <Table.Td>{t("ru", `status.${s.status}`)}</Table.Td>
               <Table.Td ta="right" style={NUMERIC}>

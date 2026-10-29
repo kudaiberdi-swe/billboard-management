@@ -76,3 +76,9 @@ export const ACTION_NOTE_WIDTH = 360;
 export const AUDIENCE_SERIES_COLOR = { people: "indigo.3", looks: "indigo.7" } as const;
 /** Hour axis of the audience chart: a label every 2 hours (recharts interval = ticks skipped). */
 export const HOUR_AXIS_INTERVAL = 1;
+/** Day axis of a chart: at most this many date labels, at a regular step. */
+export const DAY_AXIS_TICKS = 16;
+/** A wide table keeps at least this width, px; a narrower window scrolls the table, not the page. */
+export const TABLE_MIN_WIDTH = 960;
+/** Frame of the selected choice card: the accent, not colour alone (the radio role carries aria-checked). */
+export const SELECTED_OUTLINE = { outline: "2px solid var(--mantine-primary-color-filled)", outlineOffset: -1 } as const;

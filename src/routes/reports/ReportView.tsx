@@ -9,7 +9,7 @@ import { kzNow } from "../../../convex/lib/time";
 import { CATALOGS, plural, t, type StringsKey } from "../../../shared/strings";
 import { DemoLabel } from "../../components/DemoLabel";
 import { formatDate, formatNumber, formatPercent, formatPeriod } from "../../format";
-import { AXIS_DATE_FORMAT, CHART_HEIGHT, DEMO_COLOR } from "../../theme";
+import { AXIS_DATE_FORMAT, CHART_HEIGHT, DAY_AXIS_TICKS, DEMO_COLOR } from "../../theme";
 
 export type Report = FunctionReturnType<typeof api.reports.campaign>;
 
@@ -149,6 +149,8 @@ function ByDay({ days }: { days: Report["placement"]["byDay"] }) {
           ]}
           withLegend
           valueFormatter={formatNumber}
+          // a label every n-th day at a regular step (recharts interval = ticks skipped)
+          xAxisProps={{ interval: Math.max(0, Math.ceil(days.length / DAY_AXIS_TICKS) - 1) }}
           barChartProps={{ accessibilityLayer: false }}
           aria-hidden
         />

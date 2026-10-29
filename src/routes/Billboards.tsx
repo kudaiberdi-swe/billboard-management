@@ -163,55 +163,55 @@ function ScreenList({ filters }: { filters: ReturnType<typeof filtersFrom> }) {
       ) : (
         // sticky header: 100 rows stay readable without paging; no scroll container, so it sticks to the page
         <Table striped highlightOnHover verticalSpacing="xs" stickyHeader>
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>{t("ru", "billboards.colImage")}</Table.Th>
-                <Table.Th>{t("ru", "billboards.colName")}</Table.Th>
-                <Table.Th>{t("ru", "billboards.colLocation")}</Table.Th>
-                <Table.Th>{t("ru", "billboards.colStatus")}</Table.Th>
-                <Table.Th>{t("ru", "billboards.colHours")}</Table.Th>
-                <Table.Th ta="right">{t("ru", "billboards.colOccupancy")}</Table.Th>
-                <Table.Th ta="right">{t("ru", "billboards.colActiveCampaigns")}</Table.Th>
-                <Table.Th>{t("ru", "billboards.colCamera")}</Table.Th>
-                <Table.Th ta="right">{t("ru", "billboards.colAudience")}</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {data.rows.map((r) => (
-                <Table.Tr key={r._id}>
-                  <Table.Td>
-                    <Image src={`/demo/screens/${r.imageKey}.svg`} alt={r.name} w={THUMB_WIDTH} radius="sm" />
-                  </Table.Td>
-                  <Table.Td>
-                    <Anchor component={Link} to={`/billboards/${r._id}`} fw={500}>
-                      {r.name}
-                    </Anchor>
-                    {/* seed names start with the code; show it apart only when they do not */}
-                    {!r.name.startsWith(r.code) && (
-                      <Text size="sm" c="dimmed">
-                        {r.code}
-                      </Text>
-                    )}
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">{t("ru", `cities.${r.city}`)}</Text>
-                    <Text size="sm" c="dimmed" truncate="end" maw={ADDRESS_WIDTH} title={r.address}>
-                      {r.address}
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>{t("ru", "billboards.colImage")}</Table.Th>
+              <Table.Th>{t("ru", "billboards.colName")}</Table.Th>
+              <Table.Th>{t("ru", "billboards.colLocation")}</Table.Th>
+              <Table.Th>{t("ru", "billboards.colStatus")}</Table.Th>
+              <Table.Th>{t("ru", "billboards.colHours")}</Table.Th>
+              <Table.Th ta="right">{t("ru", "billboards.colOccupancy")}</Table.Th>
+              <Table.Th ta="right">{t("ru", "billboards.colActiveCampaigns")}</Table.Th>
+              <Table.Th>{t("ru", "billboards.colCamera")}</Table.Th>
+              <Table.Th ta="right">{t("ru", "billboards.colAudience")}</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {data.rows.map((r) => (
+              <Table.Tr key={r._id}>
+                <Table.Td>
+                  <Image src={`/demo/screens/${r.imageKey}.svg`} alt={r.name} w={THUMB_WIDTH} radius="sm" />
+                </Table.Td>
+                <Table.Td>
+                  <Anchor component={Link} to={`/billboards/${r._id}`} fw={500}>
+                    {r.name}
+                  </Anchor>
+                  {/* seed names start with the code; show it apart only when they do not */}
+                  {!r.name.startsWith(r.code) && (
+                    <Text size="sm" c="dimmed">
+                      {r.code}
                     </Text>
-                  </Table.Td>
-                  <Table.Td miw={STATUS_COLUMN_WIDTH} style={{ whiteSpace: "nowrap" }}>
-                    <Badge color={SCREEN_STATUS_COLOR[r.status]} variant="light" tt="none">
-                      {t("ru", `status.${r.status}`)}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>{workHours(r.workStartHour, r.workEndHour)}</Table.Td>
-                  <Table.Td ta="right">{num(r.occupancyPercent)}</Table.Td>
-                  <Table.Td ta="right">{r.activeCampaigns}</Table.Td>
-                  <Table.Td>{t("ru", r.hasCamera ? "billboards.cameraYes" : "billboards.cameraNo")}</Table.Td>
-                  <Table.Td ta="right">{r.audience === null ? t("ru", "billboards.noCamera") : num(r.audience)}</Table.Td>
-                </Table.Tr>
-              ))}
-            </Table.Tbody>
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  <Text size="sm">{t("ru", `cities.${r.city}`)}</Text>
+                  <Text size="sm" c="dimmed" truncate="end" maw={ADDRESS_WIDTH} title={r.address}>
+                    {r.address}
+                  </Text>
+                </Table.Td>
+                <Table.Td miw={STATUS_COLUMN_WIDTH} style={{ whiteSpace: "nowrap" }}>
+                  <Badge color={SCREEN_STATUS_COLOR[r.status]} variant="light" tt="none">
+                    {t("ru", `status.${r.status}`)}
+                  </Badge>
+                </Table.Td>
+                <Table.Td>{workHours(r.workStartHour, r.workEndHour)}</Table.Td>
+                <Table.Td ta="right">{num(r.occupancyPercent)}</Table.Td>
+                <Table.Td ta="right">{r.activeCampaigns}</Table.Td>
+                <Table.Td>{t("ru", r.hasCamera ? "billboards.cameraYes" : "billboards.cameraNo")}</Table.Td>
+                <Table.Td ta="right">{r.audience === null ? t("ru", "billboards.noCamera") : num(r.audience)}</Table.Td>
+              </Table.Tr>
+            ))}
+          </Table.Tbody>
         </Table>
       )}
     </Stack>

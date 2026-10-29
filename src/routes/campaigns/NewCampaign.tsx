@@ -43,7 +43,7 @@ import { t, type StringsKey } from "../../../shared/strings";
 import { errorCode } from "../../errors";
 import { formatHour, formatNumber, screenTitle } from "../../format";
 import { useGuardedMutation, useGuardedQuery, useSubmit } from "../../session";
-import { DATE_FORMAT } from "../../theme";
+import { DATE_FORMAT, SELECTED_OUTLINE } from "../../theme";
 import { conflictList } from "./conflictList";
 
 type PlaceholderKey = (typeof PLACEHOLDER_KEYS)[number];
@@ -253,8 +253,7 @@ export function NewCampaign() {
                           value={k}
                           p="xs"
                           radius="sm"
-                          // selected: a 2px accent frame, not colour alone (the radio role carries aria-checked)
-                          style={k === key ? { outline: "2px solid var(--mantine-primary-color-filled)", outlineOffset: -1 } : undefined}
+                          style={k === key ? SELECTED_OUTLINE : undefined}
                         >
                           <Image
                             src={`/demo/creatives/${k}.svg`}
