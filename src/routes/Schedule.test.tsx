@@ -131,7 +131,7 @@ test("[f07-schedule] user selects city billboard and date", () => {
   open(url);
   expect(input("Город").value).toBe("Астана");
   expect(input("Билборд").value).toBe("AST-001 Экран на проспекте");
-  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("30 октября 2026");
+  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("30.10.2026");
   expect(convex.args["schedule:day"]).toMatchObject({ screenId: "s1", date: "2026-10-30" });
 });
 
@@ -146,7 +146,7 @@ test("[f07-schedule] city narrows the billboard picker", () => {
 test("[f07-schedule] date defaults to today", () => {
   today("2026-10-28T20:00:00Z"); // 01:00 on 29 October in UTC+5
   open("/schedule?screen=s1");
-  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("29 октября 2026");
+  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("29.10.2026");
   expect(convex.args["schedule:day"]).toMatchObject({ date: "2026-10-29" });
 });
 
@@ -215,4 +215,16 @@ test("[f07-schedule] unknown screen is refused", () => {
   pick("Билборд", "AST-001 Экран на проспекте");
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.getByRole("button", { name: /10:00–11:00/ })).toBeTruthy();
+});
+
+test("campaign opened from its card is marked and its first hour opens", () => {
+  const view = open("/schedule?screen=s1&date=2026-10-30&campaign=c1");
+  // 10:00–11:00 holds c1 and opens on its own; its 2 slots are marked
+  expect(cells()).toHaveLength(12);
+  const marked = cells().filter((c) => c.dataset.marked !== undefined);
+  expect(marked).toHaveLength(2);
+  for (const c of marked) expect(within(c).getByRole("link", { name: "Летняя акция" })).toBeTruthy();
+  view.unmount();
+  open("/schedule?screen=s1&date=2026-10-30");
+  expect(cells()).toHaveLength(0); // no campaign param: every hour starts closed
 });
