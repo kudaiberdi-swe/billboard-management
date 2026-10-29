@@ -38,7 +38,7 @@ schema: spec-driven
 context: |
   Product: billboard-management for TBD. Executor: Echo Brain.
   Requirements: docs/SoW.md (10 sections) and docs/client/.
-  Convex mode: self-hosted (Docker on own VM). Azure: hosting on Azure.
+  Convex mode: cloud (Convex Cloud, EU region aws-eu-west-1). Frontend on Vercel, CI/CD on GitHub Actions (ADR-0012). Self-hosted compose stays for local dev only.
   Data residency: no rule given. Confirm with the client before the first production deploy.
   Development and test use synthetic or anonymized data only.
   UI language: Russian. UI strings come verbatim from the SoW, from one shared strings module.

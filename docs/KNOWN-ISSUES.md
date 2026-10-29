@@ -25,6 +25,7 @@ QA failures still open after the round 3 re-examination.
 - Evidence: convex/campaigns.ts:235 → convex/campaigns.ts:260. Details stay in the git-ignored run directory.
 - Re-examination: needs validation: Target code was not executed (no OS-enforced sandbox or promotion helper in this run), so backlog growth across sweep runs was not observed locally.
 - Status: fixed 844f7d5 (paginated orphan sweep; Caddy request_body 21MB on /api/storage/upload)
+- Re-assessment (ADR-0012, 2026-10-29): on Convex Cloud there is no Caddy; upload URLs post straight to Convex ("The file size is not limited, but upload POST request has a 2 minute timeout", docs.convex.dev/file-storage/upload-files). Still in force: session + `upload` rate limit on `generateUploadUrl`, size/type check in `campaigns.create`, daily orphan sweep. Residual: up to ~2 min of bytes per upload URL stored until the sweep; accepted for the demo (synthetic data, Pro storage quota). The Caddy cap applies to the local compose stack only.
 
 ## KI-04: Viewer-grown showLog breaks shared campaign list and default dashboard via unbounded collects
 - Wave: security audit (run 1); change: none; found: 2026-10-29
@@ -57,6 +58,7 @@ QA failures still open after the round 3 re-examination.
 - Evidence: convex/demo.ts:44 → convex/rateLimits.ts:47. Details stay in the git-ignored run directory.
 - Re-examination: needs validation: Running target code is not allowed in this run: there is no OS-enforced sandbox with memory, disk and time limits, and no artifact promotion helper. So convex/security.test.ts:98-102 was not run, and there is no locally observed lockout to cite.
 - Status: open — accepted trade-off: the spec fixes the shared 300/min sign-in bucket; real remedy is IP-keyed sign-in via an HTTP action (spec/design change), documented in convex/rateLimits.ts
+- Re-assessment (ADR-0012, 2026-10-29): unchanged by the move to Convex Cloud; the bucket is app code. No proxy of ours sits in front any more, and Vercel's firewall cannot see sign-in calls (they ride the Convex WebSocket). Stays open.
 
 ## KI-08: Campaign count drives superlinear CPU in screens.list and campaigns.list past the 1 s UDF timeout
 - Wave: security audit (run 1); change: none; found: 2026-10-29
@@ -73,3 +75,4 @@ QA failures still open after the round 3 re-examination.
 - Evidence: deploy/compose/README.md:38 → deploy/compose/Caddyfile:9. Details stay in the git-ignored run directory.
 - Re-examination: needs validation: The real test or production VM .env is gitignored (.gitignore:10) and not in the repository. Whether REDACT_LOGS_TO_CLIENT is empty or 1 on the deployed backend is unknown, and that fact decides the outcome.
 - Status: fixed 844f7d5 (.env.example ships REDACT_LOGS_TO_CLIENT=1; README updated)
+- Re-assessment (ADR-0012, 2026-10-29): self-hosted setting, local compose only. Convex Cloud production redacts by default; the development deployment behind Vercel Preview does not (docs.convex.dev/functions/error-handling). Synthetic data; keep Preview URLs for the team.

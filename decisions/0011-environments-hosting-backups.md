@@ -2,7 +2,9 @@
 
 | Status | Date | Decided by | Supersedes | Superseded by |
 | --- | --- | --- | --- | --- |
-| Accepted | 2026-10-28 | architect agent (draft), machine gate (auto) | - | - |
+| Superseded by 0012 | 2026-10-28 | architect agent (draft), machine gate (auto) | - | [0012](0012-hosting-convex-cloud-vercel-ci.md) (2026-10-29) |
+
+> Superseded by [ADR-0012](0012-hosting-convex-cloud-vercel-ci.md) (User decision, 2026-10-29): hosting moves to Convex Cloud (EU) + Vercel with GitHub Actions; backups use Convex Cloud backups; `deploy/compose` stays for local dev only. The test stack part below (vitest, convex-test, Playwright) still holds.
 
 ## Context
 

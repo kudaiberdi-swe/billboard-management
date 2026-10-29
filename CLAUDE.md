@@ -10,12 +10,14 @@ The pipeline rules come from the echo-sdlc plugin (`rules/core.md`). This file h
 
 | Item | Value |
 | --- | --- |
-| Convex mode | self-hosted (Docker on own VM) |
-| Azure | hosting on Azure |
+| Convex mode | cloud (Convex Cloud, EU region) |
+| Azure | none (frontend on Vercel, backend on Convex Cloud) |
 | Data residency | none |
 | UI language | Russian |
 | Linear issue | none |
 | Build source | docs |
+
+Deploy: GitHub Actions — main → Convex prod + Vercel Production; dev → Convex dev + Vercel Preview (ADR-0012).
 
 Build source: `docs` (client docs in `docs/client/`), `clone` (copy the site in `docs/client/SOURCE.md`), `docs+design` (client docs; the site in `docs/client/SOURCE.md` gives look and feel only).
 Apps and architecture: `decisions/ARCHITECTURE.md` (stage 1).

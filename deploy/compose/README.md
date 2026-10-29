@@ -1,5 +1,7 @@
 # Self-hosted Convex stack (Docker compose)
 
+> This project deploys to Convex Cloud + Vercel (ADR-0012, `docs/DEPLOY.md`). This stack is for local dev and e2e only; the Test VM and Production VM rows below do not apply.
+
 Template from the echo-sdlc plugin. Use it when the project's Convex mode is **self-hosted**. Copy the four files to `deploy/compose/` in the project. One compose file runs the backend in every place; only `.env` differs.
 
 | Where | Data | Used for |

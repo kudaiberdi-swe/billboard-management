@@ -22,4 +22,5 @@ Rules:
 | [0008](0008-creatives-and-file-storage.md) | Creatives and file storage | Proposed | 2026-10-28 | architect agent (draft) |
 | [0009](0009-map-leaflet-osm.md) | Map of screens with Leaflet and OpenStreetMap | Proposed | 2026-10-28 | architect agent (draft) |
 | [0010](0010-report-print.md) | Report print with a print stylesheet | Proposed | 2026-10-28 | architect agent (draft) |
-| [0011](0011-environments-hosting-backups.md) | Environments, hosting, backups and test stack | Proposed | 2026-10-28 | architect agent (draft) |
+| [0011](0011-environments-hosting-backups.md) | Environments, hosting, backups and test stack | Superseded by 0012 | 2026-10-28 | architect agent (draft), machine gate (auto) |
+| [0012](0012-hosting-convex-cloud-vercel-ci.md) | Hosting on Convex Cloud (EU) and Vercel, deploy by GitHub Actions | Accepted | 2026-10-29 | User decision, 2026-10-29 |

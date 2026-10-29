@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Delegated: the echo-sdlc architecture stage decides it (`decisions/ARCHITECTURE.md`). Fixed inputs: Convex backend, self-hosted (Docker on own VM), hosted on Azure. For now the demo runs locally; the Azure deploy comes later.
+Delegated: the echo-sdlc architecture stage decides it (`decisions/ARCHITECTURE.md`). Fixed inputs: Convex backend. Hosting (ADR-0012): Convex Cloud in the EU (Ireland), frontend on Vercel, deploys from GitHub Actions (`main` = production, `dev` = preview).
 
 ## Users
 
