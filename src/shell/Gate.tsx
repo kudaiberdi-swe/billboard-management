@@ -1,6 +1,6 @@
 // Session gate (design D9): no valid session -> /login; UNAUTHENTICATED from any call -> /login.
 import { Component, useEffect, useState, type ReactNode } from "react";
-import { Alert, Center, Loader } from "@mantine/core";
+import { Alert, Button, Center, Loader, Stack } from "@mantine/core";
 import { useQuery } from "convex/react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { api } from "../../convex/_generated/api";
@@ -10,7 +10,16 @@ import { onUnauthenticated, reportUnauthenticated, sessionId } from "../session"
 import { AppShell } from "./AppShell";
 import { PasswordScreen } from "./PasswordScreen";
 
+/** The app root: a failed session check (for example a timeout) shows a retry instead of a blank page. */
 export function Gate() {
+  return (
+    <SessionCheckErrors>
+      <SessionGate />
+    </SessionCheckErrors>
+  );
+}
+
+function SessionGate() {
   const status = useQuery(api.demo.sessionStatus, { sessionId: sessionId() });
   // sessionStatus is not re-run when time passes; an UNAUTHENTICATED call is the expiry signal.
   const [expired, setExpired] = useState(false);
@@ -63,6 +72,27 @@ class CallErrors extends Component<{ children: ReactNode }, { error?: unknown }>
         <Alert color="red" role="alert">
           {errorText(this.state.error)}
         </Alert>
+      </Center>
+    );
+  }
+}
+
+/** A failed sessionStatus query: say so and let the visitor run it again (remount re-subscribes the query). */
+class SessionCheckErrors extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    if (!this.state.failed) return this.props.children;
+    return (
+      <Center mih="100vh">
+        <Stack align="center">
+          <Alert color="red" role="alert">
+            {t("ru", "login.checkFailed")}
+          </Alert>
+          <Button onClick={() => this.setState({ failed: false })}>{t("ru", "common.retry")}</Button>
+        </Stack>
       </Center>
     );
   }

@@ -189,6 +189,18 @@ test("sign-out forgets the session and returns to the password screen", async ()
   expect(localStorage.getItem("billboard.sessionId")).not.toBe(before);
 });
 
+test("[predeploy] a failed session check offers a retry instead of a blank page", async () => {
+  const quiet = vi.spyOn(console, "error").mockImplementation(() => {}); // React logs the caught render error
+  convex.set("demo:sessionStatus", new Error("timeout"));
+  open("/");
+  expect(screen.getByRole("alert").textContent).toBe("Не удалось проверить вход. Проверьте подключение и повторите.");
+  convex.set("demo:sessionStatus", { valid: false });
+  fireEvent.click(screen.getByRole("button", { name: "Повторить" }));
+  expect(await screen.findByLabelText("Пароль", { exact: false })).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+  quiet.mockRestore();
+});
+
 test("[base-contract] demo label shows the verbatim text", () => {
   render(
     <MantineProvider theme={theme}>

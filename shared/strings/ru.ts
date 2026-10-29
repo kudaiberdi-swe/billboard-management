@@ -46,6 +46,7 @@ export const ru = {
   login: {
     password: "Пароль",
     submit: "Войти",
+    checkFailed: "Не удалось проверить вход. Проверьте подключение и повторите.", // team: session check failed
   },
   screenEvents: {
     went_offline: "Экран недоступен",
@@ -57,6 +58,7 @@ export const ru = {
     percent: "{value}\u00a0%", // team: every percent value (no-break space before the sign)
     period: "{from} – {to}", // team: a date range
     signOut: "Выйти", // team: ends the demo session in this browser
+    retry: "Повторить", // team: runs a failed request again
     // team: screen count by the ru plural rules
     screens: { one: "{n} экран", few: "{n} экрана", many: "{n} экранов", other: "{n} экрана" },
   },
@@ -270,5 +272,6 @@ export const ru = {
     // f10-simulate-shows; button from SoW 4.10, done is team copy
     button: "Смоделировать показы",
     done: "Показы смоделированы: {from} – {to}",
+    logFull: "Журнал показов заполнен. Сбросьте демо, чтобы смоделировать показы снова.", // team: log row budget used up
   },
 };
