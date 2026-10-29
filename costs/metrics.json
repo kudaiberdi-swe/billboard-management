@@ -1,0 +1,163 @@
+{
+  "schema": 1,
+  "metricsVersion": 2,
+  "generated": "2026-10-29T09:23:07.714Z",
+  "project": "billboard-management",
+  "pluginVersion": "1.9.0",
+  "head": "d1a447f",
+  "pricingAsOf": "2026-10-09",
+  "note": "Costs are API list-price equivalents from local transcripts, not invoices.",
+  "inputs": {
+    "transcriptFiles": 143,
+    "responses": 2443,
+    "badLines": 0,
+    "timeLog": "costs/time-log.jsonl",
+    "events": 1065,
+    "unpricedModels": []
+  },
+  "metrics": {
+    "cost_total": 191.0004,
+    "cost_by_model": {
+      "claude-opus-5-5": 182.7508,
+      "claude-sonnet-5-5": 6.5328,
+      "claude-opus-5": 1.7063,
+      "claude-haiku-5-5": 0.0104
+    },
+    "cost_by_role": {
+      "(main session)": 64.7707,
+      "echo-sdlc:frontend-builder": 25.5994,
+      "(worktree session)": 22.3716,
+      "general-purpose": 15.277,
+      "echo-sdlc:routine-builder": 14.6239,
+      "echo-sdlc:backend-builder": 14.0403,
+      "echo-sdlc:spec-writer": 13.8117,
+      "echo-sdlc:wave-e2e-qa": 7.1847,
+      "echo-sdlc:reviewer": 5.3688,
+      "echo-sdlc:e2e-qa": 3.9476,
+      "echo-sdlc:architect": 2.212,
+      "impeccable:impeccable-finish-reviewer": 0.9504,
+      "echo-sdlc:wave-qa": 0.735,
+      "echo-sdlc:planner": 0.0969,
+      "echo-sdlc:explorer": 0.0104
+    },
+    "cache_rebuilds": {
+      "count": 19,
+      "cost": 41.068,
+      "main": {
+        "count": 9,
+        "cost": 36.6059
+      },
+      "subagents": {
+        "count": 10,
+        "cost": 4.4621
+      }
+    },
+    "main_context": {
+      "sessions": 10,
+      "responses": 321,
+      "peak": 931684,
+      "end": 931684,
+      "mean": 406269
+    },
+    "cost_by_stage": {
+      "6 Final e2e": 40.3868,
+      "2 Contract": 19.8779,
+      "4 Build": 32.0543,
+      "3 Specs & plan": 9.0191,
+      "(between stages)": 81.2546,
+      "1 Clarification": 4.6247,
+      "(before first stage)": 2.5283,
+      "0 Understand": 1.2546
+    },
+    "stage_source": "events",
+    "features_archived": 9,
+    "cost_to_demo": null,
+    "cost_per_feature_demo": null,
+    "cost_per_feature_total": 21.2223,
+    "calendar_h": 25.97,
+    "active_h": 8.78,
+    "idle_pct": 66.18,
+    "calendar_h_to_demo": null,
+    "active_h_to_demo": null,
+    "gate_wait_h": 1.19,
+    "gate_wait_by_stage": {
+      "0 Understand": 0.45,
+      "1 Clarification": 0.2,
+      "2 Contract": 0.3,
+      "(between stages)": 0.1,
+      "6 Final e2e": 0.15
+    },
+    "gates": {
+      "source": "hook",
+      "answered": 11,
+      "open": 0
+    },
+    "gate_wait_pct": 4.59,
+    "blocked_h": 0.24,
+    "blocked_open": 0,
+    "waves": {
+      "count": 2,
+      "passed": 2,
+      "failed": 0,
+      "first_pass": 1,
+      "rounds": 3,
+      "by_qa": {
+        "fast": {
+          "count": 2,
+          "first_pass": 1
+        }
+      }
+    },
+    "fix_rounds_per_wave": 0.5,
+    "qa_first_pass_rate": 0.5,
+    "qa_first_pass_by_qa": {
+      "fast": 0.5
+    },
+    "known_issues": 9,
+    "auto_approvals": {
+      "count": 5,
+      "by_gate": {
+        "architecture": 1,
+        "base-spec": 1,
+        "specs-plan": 1,
+        "e2e": 1,
+        "security-audit": 1
+      }
+    },
+    "e2e": {
+      "runs": 1,
+      "last_result": "pass",
+      "passed": 14,
+      "failed": 0,
+      "skipped": 0
+    },
+    "e2e_runs_to_green": 1,
+    "acceptance_pass": 1,
+    "defects": null,
+    "defects_late": null,
+    "security_findings": null,
+    "defects_escaped": null,
+    "change_rounds": null,
+    "scenario_coverage": null,
+    "seeded_recall": null,
+    "false_positive_rate": null,
+    "reliability_pass_k": null,
+    "parity": null
+  },
+  "missing": {
+    "cost_to_demo": "no demo_ready event",
+    "cost_per_feature_demo": "no demo_ready event",
+    "calendar_h_to_demo": "no demo_ready event",
+    "active_h_to_demo": "no demo_ready event",
+    "defects": "no defect events",
+    "defects_late": "no defect events",
+    "security_findings": "no defect events",
+    "defects_escaped": "no handover_done event",
+    "change_rounds": "no change_round events",
+    "scenario_coverage": "not recorded; run check-scenarios.mjs --all and read its output",
+    "seeded_recall": "eval-only metric (T1 seeded-defect evals)",
+    "false_positive_rate": "eval-only metric (T1 seeded-defect evals)",
+    "reliability_pass_k": "benchmark-only metric (T2)",
+    "parity": "no reference site in echo-sdlc projects"
+  }
+}
