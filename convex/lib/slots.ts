@@ -53,32 +53,41 @@ export function usedSlots(s: ScreenRule, date: DateStr, hour: number, campaigns:
 
 /** Planned shows of one campaign on one screen and day; `untilHour` (exclusive) cuts today to its finished hours. */
 export function plannedShowsForDay(c: CampaignRule, s: ScreenRule, date: DateStr, untilHour?: number): number {
-  if (!c.screenIds.includes(s._id) || !onDate(c, date)) return 0;
+  return c.screenIds.includes(s._id) ? showsOn(c, s, date, untilHour) : 0;
+}
+
+/** plannedShowsForDay for a screen already known to be the campaign's. */
+function showsOn(c: CampaignRule, s: ScreenRule, date: DateStr, untilHour?: number): number {
+  if (!onDate(c, date)) return 0;
   const from = Math.max(c.startHour, s.workStartHour);
   const to = Math.min(c.endHour, s.workEndHour, untilHour ?? 24);
   return c.slotsPerCycle * CYCLES_PER_HOUR * Math.max(0, to - from);
 }
 
 export function plannedShows(c: CampaignRule, screens: ScreenRule[], from: DateStr, to: DateStr) {
-  const own = screens.filter((s) => c.screenIds.includes(s._id));
+  const ids = new Set(c.screenIds);
+  const own = screens.filter((s) => ids.has(s._id));
   const days = datesInRange(from > c.startDate ? from : c.startDate, to < c.endDate ? to : c.endDate);
-  const byScreen = own.map((s) => ({ screenId: s._id, shows: 0 }));
-  const byDay = days.map((date) => {
-    let shows = 0;
-    own.forEach((s, i) => {
-      const n = plannedShowsForDay(c, s, date);
-      byScreen[i].shows += n;
-      shows += n;
-    });
-    return { date, shows };
-  });
-  return { total: byDay.reduce((sum, d) => sum + d.shows, 0), byDay, byScreen };
+  // Every day of `days` lies inside the campaign dates, so a screen plans the same shows each day (KI-08: no days × screens loop).
+  const perDay = own.map((s) => showsOn(c, s, c.startDate));
+  const daily = perDay.reduce((sum, n) => sum + n, 0);
+  return {
+    total: daily * days.length,
+    byDay: days.map((date) => ({ date, shows: daily })),
+    byScreen: own.map((s, i) => ({ screenId: s._id, shows: perDay[i] * days.length })),
+  };
 }
 
 /** Campaigns of each screen, so the period loops do not rescan every campaign's screen list. */
-function campaignsByScreen(campaigns: CampaignRule[]): Map<Id<"screens">, CampaignRule[]> {
-  const map = new Map<Id<"screens">, CampaignRule[]>();
-  for (const c of campaigns) for (const id of c.screenIds) map.set(id, [...(map.get(id) ?? []), c]);
+export function campaignsByScreen<C extends CampaignRule>(campaigns: C[]): Map<Id<"screens">, C[]> {
+  const map = new Map<Id<"screens">, C[]>();
+  for (const c of campaigns) {
+    for (const id of c.screenIds) {
+      const list = map.get(id);
+      if (list) list.push(c);
+      else map.set(id, [c]);
+    }
+  }
   return map;
 }
 
@@ -91,9 +100,14 @@ function usedIn(dayCampaigns: CampaignRule[], s: ScreenRule, hour: number): numb
 
 const percent = (occupied: number, total: number) => (total === 0 ? 0 : Math.round((occupied / total) * 1000) / 10);
 
-/** D-3: occupied slots / all slots in the working hours of the screens over the days × 100. */
-export function occupancy(screens: ScreenRule[], campaigns: CampaignRule[], from: DateStr, to: DateStr) {
-  const index = campaignsByScreen(campaigns);
+/** D-3: occupied slots / all slots in the working hours of the screens over the days × 100. Pass `index` to reuse one per query. */
+export function occupancy(
+  screens: ScreenRule[],
+  campaigns: CampaignRule[],
+  from: DateStr,
+  to: DateStr,
+  index = campaignsByScreen(campaigns),
+) {
   let occupied = 0;
   let total = 0;
   const byDay = datesInRange(from, to).map((date) => {

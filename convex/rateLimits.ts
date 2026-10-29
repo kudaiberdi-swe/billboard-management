@@ -8,6 +8,11 @@
 // - A limit consumed in a mutation that then throws is rolled back with it: demo.signIn returns
 //   { ok: false } on a wrong password instead of throwing, so the attempt stays counted.
 // - Check and consume in one call.
+// - Trade-off (KI-07): signInGlobal has no key, so one anonymous caller sending > 5 wrong attempts a second keeps it
+//   empty and blocks NEW sign-ins for everyone (RATE_LIMITED, retry within a minute). Signed-in viewers keep working:
+//   their sessions last 7 days and no other function reads this bucket. Kept on purpose (design D3a, spec demo-access
+//   «global sign-in bucket»: 300 per minute): without a client IP, any exemption for a correct password would tell a
+//   guesser which attempt was right. Its rate is fixed by the spec; a per-IP limit at the proxy is the real remedy.
 import { MINUTE, HOUR, RateLimiter, type RateLimitConfig } from "@convex-dev/rate-limiter";
 import { components } from "./_generated/api";
 
