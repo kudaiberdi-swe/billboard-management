@@ -4,47 +4,52 @@ import { useId, type ReactNode } from "react";
 import { Alert, Button, Group, Paper, SimpleGrid, Stack, Table, Text, Title, VisuallyHidden } from "@mantine/core";
 import { BarChart } from "@mantine/charts";
 import type { FunctionReturnType } from "convex/server";
-import dayjs from "dayjs";
 import type { api } from "../../../convex/_generated/api";
-import { t, type StringsKey } from "../../../shared/strings";
+import { kzNow } from "../../../convex/lib/time";
+import { CATALOGS, plural, t, type StringsKey } from "../../../shared/strings";
 import { DemoLabel } from "../../components/DemoLabel";
-import { CHART_HEIGHT, DATE_FORMAT, DEMO_COLOR, NUMBER_LOCALE } from "../../theme";
+import { formatDate, formatNumber, formatPercent, formatPeriod } from "../../format";
+import { AXIS_DATE_FORMAT, CHART_HEIGHT, DEMO_COLOR } from "../../theme";
 
 export type Report = FunctionReturnType<typeof api.reports.campaign>;
 
 const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
-const formatDate = (d: string) => dayjs(d).format(DATE_FORMAT);
-const formatNumber = (n: number) => n.toLocaleString(NUMBER_LOCALE);
-const formatCompletion = (n: number | null) =>
-  n === null
-    ? t("ru", "reports.noPlan")
-    : t("ru", "reports.percent", {
-        value: n.toLocaleString(NUMBER_LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 }),
-      });
+const formatCompletion = (n: number | null) => (n === null ? t("ru", "reports.noPlan") : formatPercent(n, true));
+const screenCount = (n: number) => plural("ru", n, CATALOGS.ru.common.screens);
+
+/** Screen count, then the count per city in the order of the report cities (reports.screensByCity). */
+function screensByCity({ cities, screens }: Pick<Report, "cities" | "screens">): string {
+  if (screens.length === 0) return t("ru", "reports.noPlan");
+  const list = cities.map((city) =>
+    t("ru", "reports.cityCount", { city: t("ru", `cities.${city}`), count: screens.filter((s) => s.city === city).length }),
+  );
+  return t("ru", "reports.screensByCity", { screens: screenCount(screens.length), cities: list.join(", ") });
+}
 
 export function ReportView({ data }: { data: Report }) {
   const { campaign, period, placement, screenAnalytics } = data;
   return (
     <Stack gap="lg">
+      <Group justify="space-between" wrap="nowrap" pb="xs" style={{ borderBottom: "1px solid var(--mantine-color-default-border)" }}>
+        <Text fw={600}>{t("ru", "reports.masthead", { app: t("ru", "app.name") })}</Text>
+        <Text size="sm" style={NUMERIC}>
+          {t("ru", "reports.generatedOn", { date: formatDate(kzNow(Date.now()).date) })}
+        </Text>
+      </Group>
+
       <Alert color={DEMO_COLOR} variant="light" data-testid="report-disclaimer">
-        <Stack gap="xs" align="flex-start">
-          <Text size="sm">{t("ru", "reports.disclaimer")}</Text>
-          <DemoLabel />
-        </Stack>
+        <Text size="sm">{t("ru", "reports.disclaimer")}</Text>
       </Alert>
 
       <Group justify="space-between" align="flex-start" wrap="nowrap">
         <Stack gap={4}>
-          <Text size="sm" c="dimmed">
-            {t("ru", "app.name")}
-          </Text>
           <Title order={2}>{campaign.name}</Title>
           <Facts
             rows={[
               ["reports.advertiser", campaign.advertiser],
-              ["reports.period", period ? `${formatDate(period.from)} – ${formatDate(period.to)}` : t("ru", "reports.noPlan")],
+              ["reports.period", period ? formatPeriod(period.from, period.to) : t("ru", "reports.noPlan")],
               ["reports.cities", data.cities.map((c) => t("ru", `cities.${c}`)).join(", ") || t("ru", "reports.noPlan")],
-              ["reports.screens", data.screens.map((s) => s.code).join(", ") || t("ru", "reports.noPlan")],
+              ["reports.screens", screensByCity(data)],
             ]}
           />
         </Stack>
@@ -53,8 +58,8 @@ export function ReportView({ data }: { data: Report }) {
         </Button>
       </Group>
 
-      <Block title={t("ru", "reports.placement")}>
-        <SimpleGrid cols={3}>
+      <Block title={t("ru", "reports.placement")} flow>
+        <SimpleGrid cols={3} className="report-keep">
           <Value label="reports.planned" value={formatNumber(placement.plannedShows)} />
           <Value label="reports.log" value={formatNumber(placement.logShows)} demo />
           <Value label="reports.completion" value={formatCompletion(placement.completion)} demo />
@@ -64,14 +69,14 @@ export function ReportView({ data }: { data: Report }) {
       </Block>
 
       <Block title={t("ru", "reports.screenAnalytics")}>
-        <SimpleGrid cols={3}>
+        <SimpleGrid cols={3} className="report-keep">
           <Value label="reports.traffic" value={formatNumber(screenAnalytics.traffic)} demo />
           <Value label="reports.looks" value={formatNumber(screenAnalytics.looks)} demo />
           <Value label="reports.contacts" value={formatNumber(screenAnalytics.contacts)} demo />
         </SimpleGrid>
         {screenAnalytics.screensWithoutCamera > 0 && (
           <Text size="sm" c="dimmed">
-            {t("ru", "reports.noCamera", { count: formatNumber(screenAnalytics.screensWithoutCamera) })}
+            {t("ru", "reports.noCamera", { screens: screenCount(screenAnalytics.screensWithoutCamera) })}
           </Text>
         )}
       </Block>
@@ -96,10 +101,11 @@ function Facts({ rows }: { rows: [StringsKey, string][] }) {
   );
 }
 
-function Block({ title, children }: { title: string; children: ReactNode }) {
+/** `flow`: a block that can outgrow a page (the per-screen table) breaks between its parts, never inside one. */
+function Block({ title, flow, children }: { title: string; flow?: true; children: ReactNode }) {
   const id = useId();
   return (
-    <Paper withBorder p="md" component="section" aria-labelledby={id} className="report-block">
+    <Paper withBorder p="md" component="section" aria-labelledby={id} className={flow ? "report-block report-flow" : "report-block"}>
       <Stack gap="md">
         <Title order={3} size="h4" id={id}>
           {title}
@@ -130,12 +136,12 @@ function ByDay({ days }: { days: Report["placement"]["byDay"] }) {
   const planned = t("ru", "reports.planned");
   const log = t("ru", "reports.log");
   return (
-    <Stack gap="xs">
+    <Stack gap="xs" className="report-keep">
       <Text fw={500}>{title}</Text>
       <div className="report-chart">
         <BarChart
           h={CHART_HEIGHT}
-          data={days.map((d) => ({ date: formatDate(d.date), planned: d.planned, log: d.log }))}
+          data={days.map((d) => ({ date: formatDate(d.date, AXIS_DATE_FORMAT), planned: d.planned, log: d.log }))}
           dataKey="date"
           series={[
             { name: "planned", label: planned, color: "gray.5" },
@@ -143,6 +149,7 @@ function ByDay({ days }: { days: Report["placement"]["byDay"] }) {
           ]}
           withLegend
           valueFormatter={formatNumber}
+          barChartProps={{ accessibilityLayer: false }}
           aria-hidden
         />
       </div>
@@ -192,7 +199,7 @@ function ByScreen({ rows }: { rows: Report["placement"]["byScreen"] }) {
         <Table.Tbody>
           {rows.map((s) => (
             <Table.Tr key={s._id}>
-              <Table.Td>{s.name}</Table.Td>
+              <Table.Td style={{ whiteSpace: "nowrap" }}>{s.name}</Table.Td>
               <Table.Td>{t("ru", `cities.${s.city}`)}</Table.Td>
               <Table.Td ta="right" style={NUMERIC}>
                 {formatNumber(s.planned)}

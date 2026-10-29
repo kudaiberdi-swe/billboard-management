@@ -8,7 +8,7 @@ import { api } from "../../../convex/_generated/api";
 import { CITIES, type City } from "../../../convex/lib/config";
 import { t } from "../../../shared/strings";
 import { useGuardedQuery } from "../../session";
-import { DATE_FORMAT } from "../../theme";
+import { DATE_FORMAT, FILTER_WIDTH } from "../../theme";
 
 export type ReportFilterValue = { campaignId?: string; from?: string; to?: string; city?: City; screenId?: string };
 type Options = FunctionReturnType<typeof api.reports.campaign>["options"];
@@ -61,6 +61,7 @@ export function ReportFilters({ value, options }: { value: ReportFilterValue; op
           update({ campaign: campaign ?? undefined, from: undefined, to: undefined, city: undefined, screen: undefined })
         }
         searchable
+        w={FILTER_WIDTH}
       />
       {value.campaignId && (
         <DatePickerInput
@@ -68,6 +69,7 @@ export function ReportFilters({ value, options }: { value: ReportFilterValue; op
           allowSingleDateInRange
           clearable
           label={t("ru", "reports.period")}
+          placeholder={t("ru", "reports.wholePeriod")}
           valueFormat={DATE_FORMAT}
           value={range}
           onChange={(next) => {
@@ -75,6 +77,7 @@ export function ReportFilters({ value, options }: { value: ReportFilterValue; op
             if (next[0] && next[1]) update({ from: next[0], to: next[1] });
             else if (!next[0] && !next[1]) update({ from: undefined, to: undefined });
           }}
+          w={FILTER_WIDTH}
         />
       )}
       {options && (
@@ -86,6 +89,7 @@ export function ReportFilters({ value, options }: { value: ReportFilterValue; op
             value={value.city ?? null}
             onChange={pickCity}
             clearable
+            w={FILTER_WIDTH}
           />
           <Select
             label={t("ru", "reports.screen")}
@@ -97,6 +101,7 @@ export function ReportFilters({ value, options }: { value: ReportFilterValue; op
             onChange={(screen) => update({ screen: screen ?? undefined })}
             searchable
             clearable
+            w={FILTER_WIDTH}
           />
         </>
       )}

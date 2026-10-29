@@ -141,12 +141,12 @@ test("[f09-reports] report has two separate blocks", () => {
   }
   expect(placement.contains(analytics)).toBe(false);
   expect(value("Запланированные показы")).toBe("1 440");
-  expect(value("Процент выполнения плана")).toBe("90,0 %");
+  expect(value("Процент выполнения плана")).toBe("90,0\u00a0%");
   expect(value("Трафик у экранов за период")).toBe("85 000");
-  expect(within(analytics).getByText("Экранов без камеры: 1 (нет камеры)")).toBeTruthy();
-  // header: campaign, advertiser, period, cities, screens
+  expect(within(analytics).getByText("1 экран — нет камеры, в аналитике экранов не учтены")).toBeTruthy();
+  // header: campaign, advertiser, period, cities, screens (count per city)
   expect(screen.getByRole("heading", { name: "Летняя акция" })).toBeTruthy();
-  for (const text of ["Demo Cola", "21.10.2026 – 22.10.2026", "Астана, Караганда", "AST-001, KRG-001"]) {
+  for (const text of ["Demo Cola", "21.10.2026 – 22.10.2026", "Астана, Караганда", "2 экрана: Астана — 1, Караганда — 1"]) {
     expect(screen.getByText(text)).toBeTruthy();
   }
 });
@@ -154,7 +154,8 @@ test("[f09-reports] report has two separate blocks", () => {
 test("[f09-reports] report shows the demo disclaimer", () => {
   open();
   const disclaimer = screen.getByText(DISCLAIMER);
-  expect(within(screen.getByTestId("report-disclaimer")).getByText("Демонстрационные данные")).toBeTruthy();
+  // the demo label sits on the simulated values; the disclaimer banner carries the sentence alone
+  expect(screen.getAllByText("Демонстрационные данные").length).toBeGreaterThan(0);
   for (const name of ["Результаты размещения", "Аналитика экранов"]) {
     expect(disclaimer.compareDocumentPosition(region(name)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   }

@@ -43,8 +43,13 @@ function Period({ filters }: { filters: Required<AnalyticsFilters> }) {
   const { audience } = data;
   if (audience === null) {
     return (
-      <Paper withBorder p="md">
-        <Text fw={500}>{t("ru", "audience.noCamera")}</Text>
+      <Paper withBorder p="lg" component="section" aria-labelledby="no-camera">
+        <Stack gap="xs" maw="65ch">
+          <Title order={2} size="h4" id="no-camera">
+            {t("ru", "audience.noCameraTitle")}
+          </Title>
+          <Text>{t("ru", "audience.noCameraBody", { name: data.screen.name })}</Text>
+        </Stack>
       </Paper>
     );
   }

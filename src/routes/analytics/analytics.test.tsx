@@ -95,7 +95,7 @@ test("[f08-audience-analytics] screen period values", () => {
   const today = kzNow(Date.now()).date;
   // defaults: the first billboard of the picker and the 7 days ending today (UTC+5)
   expect(lastArgs()).toMatchObject({ screenId: "s1", from: addDays(today, -6), to: today });
-  expect(value("Трафик: люди в зоне обзора")).toBe(n(12345));
+  expect(value("Трафик: люди в зоне наблюдения")).toBe(n(12345));
   expect(value("Взгляды на экран")).toBe(n(3000));
 });
 
@@ -110,14 +110,14 @@ test("[f08-audience-analytics] pickers are bound to the URL", async () => {
 
 test("[f08-audience-analytics] look share among gaze", () => {
   open();
-  expect(value("Доля взглядов среди людей с оценённым направлением взгляда, %")).toBe("37,5");
+  expect(value("Доля взглядов среди людей с оценённым направлением взгляда")).toBe("37,5\u00a0%");
   act(() =>
     convex.set("analytics:screenPeriod", (args: { screenId: string }) => {
       const r = result(args);
       return { ...r, audience: { ...r.audience!, gazeEstimated: 0, looks: 0, lookShare: 0 } };
     }),
   );
-  expect(value("Доля взглядов среди людей с оценённым направлением взгляда, %")).toBe("0,0");
+  expect(value("Доля взглядов среди людей с оценённым направлением взгляда")).toBe("0,0\u00a0%");
 });
 
 test("[f08-audience-analytics] unknown billboard is refused", () => {
@@ -140,13 +140,15 @@ test("[f08-audience-analytics] vehicles only where measured", async () => {
   expect(value("Трафик: транспорт")).toBe(n(6789));
   fireEvent.click(screen.getByRole("combobox", { name: "Билборд" }));
   fireEvent.click(await screen.findByRole("option", { name: "AST-002 Центр" }));
-  expect(value("Трафик: люди в зоне обзора")).toBe(n(12345));
+  expect(value("Трафик: люди в зоне наблюдения")).toBe(n(12345));
   expect(screen.queryByRole("group", { name: "Трафик: транспорт" })).toBeNull();
 });
 
 test("[f08-audience-analytics] screen without a camera", () => {
   open("/analytics?screen=s3");
-  expect(screen.getByText("нет камеры")).toBeTruthy();
+  // empty state: a title and a sentence that names the screen and says «нет камеры»
+  expect(screen.getByRole("heading", { name: "Камеры нет" })).toBeTruthy();
+  expect(screen.getByText(/нет камеры, поэтому аналитика аудитории недоступна/)).toBeTruthy();
   expect(screen.queryAllByRole("group")).toHaveLength(0);
   expect(screen.queryByRole("region", { name: "Аудитория и взгляды по часам" })).toBeNull();
   expect(screen.queryByRole("region", { name: "Возраст (предположительно)" })).toBeNull();
@@ -186,7 +188,7 @@ test("[f08-audience-analytics] audience and looks per hour", () => {
 
 test("[f08-audience-analytics] glossary terms are used", () => {
   open();
-  expect(within(card("Трафик: люди в зоне обзора")).getByText(/^Трафик/).textContent!.toLowerCase()).toContain("трафик");
+  expect(within(card("Трафик: люди в зоне наблюдения")).getByText(/^Трафик/).textContent!.toLowerCase()).toContain("трафик");
   // «Взгляды на экран» is the plural of the term «взгляд на экран»
   expect(within(card("Взгляды на экран")).getByText(/^Взгляд/)).toBeTruthy();
   const terms = within(region("Термины"));
@@ -210,7 +212,7 @@ test("[f08-audience-analytics] no personal data", () => {
 
 test("[f08-audience-analytics] all values carry the demo label", () => {
   open();
-  for (const name of ["Трафик: люди в зоне обзора", "Трафик: транспорт", "Взгляды на экран", "Доля взглядов среди людей с оценённым направлением взгляда, %"]) {
+  for (const name of ["Трафик: люди в зоне наблюдения", "Трафик: транспорт", "Взгляды на экран", "Доля взглядов среди людей с оценённым направлением взгляда"]) {
     expect(within(card(name)).getByText(DEMO)).toBeTruthy();
   }
   for (const name of ["Аудитория и взгляды по часам", "Возраст (предположительно)", "Пол (предположительно)"]) {
