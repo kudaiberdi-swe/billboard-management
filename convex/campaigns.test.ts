@@ -88,7 +88,7 @@ describe("campaigns.list", () => {
     expect((await t.query(api.campaigns.list, { sessionId }))[0]._id).toBe(id);
   });
 
-  test("[f05-campaign-list] row shows all campaign fields", async () => {
+  const rowShowsAllCampaignFields = async () => {
     const { t, sessionId } = await seeded();
     const row = await byName(t, sessionId, "Летняя акция");
     expect(row).toMatchObject({
@@ -107,9 +107,11 @@ describe("campaigns.list", () => {
     expect(row.plannedShows).toBe(expected.planned);
     expect(row.plannedShows).toBeGreaterThan(0);
     expect(typeof row.logShows).toBe("number");
-  });
+  };
+  test("[f05-campaign-list] row shows all campaign fields", rowShowsAllCampaignFields);
+  test("[c00-predeploy-hardening] row shows all campaign fields", rowShowsAllCampaignFields);
 
-  test("[f05-campaign-list] log shows are the sum of the show log", async () => {
+  const logShowsAreTheSumOfTheShowLog = async () => {
     const { t, sessionId } = await seeded();
     const row = await byName(t, sessionId, "Летняя акция");
     const sum = await t.run(async (ctx) =>
@@ -118,12 +120,16 @@ describe("campaigns.list", () => {
     expect(row.logShows).toBe(sum);
     expect(row.logShows).toBeGreaterThan(0);
     expect(row.logShows).toBeLessThanOrEqual(row.plannedShows);
-  });
+  };
+  test("[f05-campaign-list] log shows are the sum of the show log", logShowsAreTheSumOfTheShowLog);
+  test("[c00-predeploy-hardening] log shows are the sum of the show log", logShowsAreTheSumOfTheShowLog);
 
-  test("[f05-campaign-list] campaign without log shows zero", async () => {
+  const campaignWithoutLogShowsZero = async () => {
     const { t, sessionId } = await seeded();
     expect((await byName(t, sessionId, "Презентация автомобиля")).logShows).toBe(0);
-  });
+  };
+  test("[f05-campaign-list] campaign without log shows zero", campaignWithoutLogShowsZero);
+  test("[c00-predeploy-hardening] campaign without log shows zero", campaignWithoutLogShowsZero);
 
   test("[f05-campaign-list] status before the start date", async () => {
     const { t, sessionId } = await seeded();
@@ -164,7 +170,7 @@ describe("campaigns.list", () => {
 });
 
 describe("campaigns.get", () => {
-  test("[f05-campaign-list] per screen values add up to the totals", async () => {
+  const perScreenValuesAddUpToTheTotals = async () => {
     const { t, sessionId } = await seeded();
     const { _id } = await byName(t, sessionId, "Летняя акция");
     const card = await t.query(api.campaigns.get, { sessionId, campaignId: _id });
@@ -174,9 +180,11 @@ describe("campaigns.get", () => {
     expect(card.screens.map((s) => s.code)).toEqual(card.screens.map((s) => s.code).sort());
     expect(card).toMatchObject({ startHour: 8, endHour: 22, slotsPerCycle: 2, status: "active" });
     expect(card.creative.kind).toBe("placeholder");
-  });
+  };
+  test("[f05-campaign-list] per screen values add up to the totals", perScreenValuesAddUpToTheTotals);
+  test("[c00-predeploy-hardening] per screen values add up to the totals", perScreenValuesAddUpToTheTotals);
 
-  test("[f05-campaign-list] offline screen is marked on the card", async () => {
+  const offlineScreenIsMarkedOnTheCard = async () => {
     const { t, sessionId } = await seeded();
     const campaignId = await t.run(async (ctx) => {
       const offline = (await ctx.db.query("screens").collect()).find((s) => s.status === "offline")!;
@@ -184,7 +192,9 @@ describe("campaigns.get", () => {
     });
     const card = await t.query(api.campaigns.get, { sessionId, campaignId });
     expect(card.screens.some((s) => s.status === "offline")).toBe(true);
-  });
+  };
+  test("[f05-campaign-list] offline screen is marked on the card", offlineScreenIsMarkedOnTheCard);
+  test("[c00-predeploy-hardening] offline screen is marked on the card", offlineScreenIsMarkedOnTheCard);
 
   test("[f05-campaign-list] card with a malformed id", async () => {
     const { t, sessionId } = await seeded();

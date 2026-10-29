@@ -1,32 +1,30 @@
 // Value cards, per-hour chart, age and gender estimate and the terms block (spec audience-screen).
 // Every block with simulated values carries <DemoLabel />; no images of people anywhere.
 import { useId, type ReactNode } from "react";
-import { Group, Paper, Progress, SimpleGrid, Stack, Table, Text, Title, VisuallyHidden } from "@mantine/core";
+import { Paper, Progress, SimpleGrid, Stack, Table, Text, Title, VisuallyHidden } from "@mantine/core";
 import { BarChart } from "@mantine/charts";
 import type { FunctionReturnType } from "convex/server";
 import type { api } from "../../../convex/_generated/api";
 import { t, type StringsKey } from "../../../shared/strings";
 import { DemoLabel } from "../../components/DemoLabel";
-import { AUDIENCE_SERIES_COLOR, CHART_HEIGHT, NUMBER_LOCALE } from "../../theme";
+import { formatHour, formatNumber, formatPercent } from "../../format";
+import { AUDIENCE_SERIES_COLOR, CHART_HEIGHT, HOUR_AXIS_INTERVAL } from "../../theme";
 
 export type Audience = NonNullable<FunctionReturnType<typeof api.analytics.screenPeriod>["audience"]>;
 
 const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
-const formatNumber = (n: number) => n.toLocaleString(NUMBER_LOCALE);
-const formatShare = (n: number) => n.toLocaleString(NUMBER_LOCALE, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const hourLabel = (h: number) => `${String(h).padStart(2, "0")}:00`;
 
 function Block({ title, children }: { title: string; children: (titleId: string) => ReactNode }) {
   const id = useId();
   return (
     <Paper withBorder p="md" component="section" aria-labelledby={id}>
       <Stack gap="sm">
-        <Group justify="space-between" align="flex-start" wrap="nowrap">
+        <Stack gap={6} align="flex-start">
           <Title order={2} size="h4" id={id}>
             {title}
           </Title>
           <DemoLabel />
-        </Group>
+        </Stack>
         {children(id)}
       </Stack>
     </Paper>
@@ -38,7 +36,7 @@ export function Cards({ audience }: { audience: Audience }) {
     { label: "audience.people", value: formatNumber(audience.people) },
     ...(audience.vehicles === null ? [] : [{ label: "audience.vehicles" as const, value: formatNumber(audience.vehicles) }]),
     { label: "audience.looks", value: formatNumber(audience.looks) },
-    { label: "audience.lookShare", value: formatShare(audience.lookShare) },
+    { label: "audience.lookShare", value: formatPercent(audience.lookShare, true) },
   ];
   return (
     <SimpleGrid cols={cards.length}>
@@ -76,7 +74,7 @@ export function HourChart({ byHour }: { byHour: Audience["byHour"] }) {
         <>
           <BarChart
             h={CHART_HEIGHT}
-            data={byHour.map((p) => ({ hour: hourLabel(p.hour), people: p.people, looks: p.looks }))}
+            data={byHour.map((p) => ({ hour: formatHour(p.hour), people: p.people, looks: p.looks }))}
             dataKey="hour"
             series={[
               { name: "people", label: people, color: AUDIENCE_SERIES_COLOR.people },
@@ -84,6 +82,8 @@ export function HourChart({ byHour }: { byHour: Audience["byHour"] }) {
             ]}
             withLegend
             valueFormatter={formatNumber}
+            xAxisProps={{ interval: HOUR_AXIS_INTERVAL }}
+            barChartProps={{ accessibilityLayer: false }}
             aria-hidden
           />
           {/* Table view of the chart for screen readers. */}
@@ -100,7 +100,7 @@ export function HourChart({ byHour }: { byHour: Audience["byHour"] }) {
               <Table.Tbody>
                 {byHour.map((p) => (
                   <Table.Tr key={p.hour}>
-                    <Table.Td>{hourLabel(p.hour)}</Table.Td>
+                    <Table.Td>{formatHour(p.hour)}</Table.Td>
                     <Table.Td>{formatNumber(p.people)}</Table.Td>
                     <Table.Td>{formatNumber(p.looks)}</Table.Td>
                   </Table.Tr>
@@ -153,7 +153,7 @@ function Shares({ title, rows }: { title: string; rows: { label: string; percent
                     <Progress value={r.percent} aria-hidden />
                   </Table.Td>
                   <Table.Td ta="right" w="20%" style={NUMERIC}>
-                    {t("ru", "audience.percent", { value: r.percent })}
+                    {formatPercent(r.percent)}
                   </Table.Td>
                 </Table.Tr>
               ))}

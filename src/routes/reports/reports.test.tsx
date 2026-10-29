@@ -141,24 +141,43 @@ test("[f09-reports] report has two separate blocks", () => {
   }
   expect(placement.contains(analytics)).toBe(false);
   expect(value("Запланированные показы")).toBe("1 440");
-  expect(value("Процент выполнения плана")).toBe("90,0 %");
+  expect(value("Процент выполнения плана")).toBe("90,0\u00a0%");
   expect(value("Трафик у экранов за период")).toBe("85 000");
-  expect(within(analytics).getByText("Экранов без камеры: 1 (нет камеры)")).toBeTruthy();
-  // header: campaign, advertiser, period, cities, screens
+  expect(within(analytics).getByText("1 экран — нет камеры, в аналитике экранов не учтены")).toBeTruthy();
+  // header: campaign, advertiser, period, cities, screens (count per city)
   expect(screen.getByRole("heading", { name: "Летняя акция" })).toBeTruthy();
-  for (const text of ["Demo Cola", "21.10.2026 – 22.10.2026", "Астана, Караганда", "AST-001, KRG-001"]) {
+  for (const text of ["Demo Cola", "21.10.2026 – 22.10.2026", "Астана, Караганда", "2 экрана: Астана — 1, Караганда — 1"]) {
     expect(screen.getByText(text)).toBeTruthy();
   }
 });
 
-test("[f09-reports] report shows the demo disclaimer", () => {
+const reportShowsTheDemoDisclaimer = () => {
   open();
   const disclaimer = screen.getByText(DISCLAIMER);
-  expect(within(screen.getByTestId("report-disclaimer")).getByText("Демонстрационные данные")).toBeTruthy();
+  // the demo label sits on each simulated value; the disclaimer banner carries the sentence alone
+  for (const name of ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"]) {
+    expect(within(screen.getByRole("group", { name })).getByText("Демонстрационные данные")).toBeTruthy();
+  }
+  expect(within(screen.getByRole("group", { name: "Запланированные показы" })).queryByText("Демонстрационные данные")).toBeNull();
   for (const name of ["Результаты размещения", "Аналитика экранов"]) {
     expect(disclaimer.compareDocumentPosition(region(name)) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   }
   expect(disclaimer.closest(".no-print")).toBeNull();
+};
+test("[f09-reports] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
+test("[c00-predeploy-hardening] report shows the demo disclaimer", reportShowsTheDemoDisclaimer);
+
+test("[c00-predeploy-hardening] demo label sits on the simulated values", () => {
+  open();
+  for (const name of ["Показы по журналу", "Процент выполнения плана", "Трафик у экранов за период", "Взгляды на экран", "Оценочные контакты с кампанией"]) {
+    expect(within(screen.getByRole("group", { name })).getByText("Демонстрационные данные")).toBeTruthy();
+  }
+  const banner = screen.getByTestId("report-disclaimer");
+  expect(within(banner).getByText(DISCLAIMER)).toBeTruthy();
+  expect(within(banner).queryByText("Демонстрационные данные")).toBeNull();
+  for (const next of [banner.previousElementSibling, banner.nextElementSibling]) {
+    expect(next!.textContent).not.toContain("Демонстрационные данные");
+  }
 });
 
 test("[f09-reports] zero plan shows a dash", () => {

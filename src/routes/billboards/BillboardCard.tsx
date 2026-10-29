@@ -7,9 +7,11 @@ import { t } from "../../../shared/strings";
 import { DemoLabel } from "../../components/DemoLabel";
 import { errorText } from "../../errors";
 import { useGuardedQuery } from "../../session";
+import { SLOTS_PER_CYCLE } from "../../../convex/lib/config";
+import { formatHour as hh, formatNumber as num, formatPercent as percent, formatDate, formatPeriod } from "../../format";
 import { CAMPAIGN_STATUS_COLOR, CARD_IMAGE_WIDTH, HOUR_COLUMN_WIDTH, SCREEN_STATUS_COLOR } from "../../theme";
 import { Boundary } from "./Boundary";
-import { hh, kzDateTime, num, percent, workHours } from "./format";
+import { kzDateTime, workHours } from "./format";
 
 type Card = FunctionReturnType<typeof api.screens.get>;
 
@@ -47,7 +49,8 @@ function CardBody({ id }: { id: string }) {
     <Stack gap="xl" aria-busy="false">
       <Group gap="md" align="baseline">
         <Title order={1}>{screen.name}</Title>
-        <Text c="dimmed">{screen.code}</Text>
+        {/* seed names start with the code; show it apart only when they do not */}
+        {!screen.name.startsWith(screen.code) && <Text c="dimmed">{screen.code}</Text>}
         <Badge color={SCREEN_STATUS_COLOR[screen.status]} variant="light" tt="none" size="lg">
           {t("ru", `status.${screen.status}`)}
         </Badge>
@@ -133,7 +136,7 @@ function Campaigns({ campaigns }: { campaigns: Card["campaigns"] }) {
               <Table.Tr key={c._id}>
                 <Table.Td>{c.name}</Table.Td>
                 <Table.Td>{c.advertiser}</Table.Td>
-                <Table.Td>{t("ru", "billboards.hoursRange", { from: c.startDate, to: c.endDate })}</Table.Td>
+                <Table.Td style={{ whiteSpace: "nowrap" }}>{formatPeriod(c.startDate, c.endDate)}</Table.Td>
                 <Table.Td>{t("ru", "billboards.hoursRange", { from: hh(c.startHour), to: hh(c.endHour) })}</Table.Td>
                 <Table.Td ta="right">{c.slotsPerCycle}</Table.Td>
                 <Table.Td>
@@ -161,7 +164,7 @@ function Schedule({ hours }: { hours: Card["hours"] }) {
                 {t("ru", "billboards.hoursRange", { from: hh(h.hour), to: hh(h.hour + 1) })}
               </Text>
               <Text w={HOUR_COLUMN_WIDTH} size="sm" c="dimmed">
-                {t("ru", "billboards.slotsUsed", { used: h.used })}
+                {t("ru", "billboards.slotsUsed", { used: h.used, total: SLOTS_PER_CYCLE })}
               </Text>
               <Text size="sm" c={h.used === 0 ? "dimmed" : undefined}>
                 {h.used === 0 ? t("ru", "slot.free") : h.campaigns.map((c) => c.name).join(", ")}
@@ -183,7 +186,7 @@ function Audience({ card }: { card: Card }) {
       ) : (
         <Paper withBorder p="md">
           <Text size="sm" c="dimmed" mb="sm">
-            {t("ru", "billboards.period", { from: card.from, to: card.to })}
+            {t("ru", "billboards.period", { from: formatDate(card.from), to: formatDate(card.to) })}
           </Text>
           <SimpleGrid cols={3}>
             <Fact label={t("ru", "billboards.people")}>

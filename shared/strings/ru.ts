@@ -46,6 +46,7 @@ export const ru = {
   login: {
     password: "Пароль",
     submit: "Войти",
+    checkFailed: "Не удалось проверить вход. Проверьте подключение и повторите.", // team: session check failed
   },
   screenEvents: {
     went_offline: "Экран недоступен",
@@ -54,6 +55,12 @@ export const ru = {
   common: {
     loading: "Загрузка…", // team: accessible name of the loading indicator
     menu: "Разделы", // team: accessible name of the left menu
+    percent: "{value}\u00a0%", // team: every percent value (no-break space before the sign)
+    period: "{from}\u00a0– {to}", // team: a date range; the no-break space keeps the dash off the start of a line
+    signOut: "Выйти", // team: ends the demo session in this browser
+    retry: "Повторить", // team: runs a failed request again
+    // team: screen count by the ru plural rules
+    screens: { one: "{n} экран", few: "{n} экрана", many: "{n} экранов", other: "{n} экрана" },
   },
   // f02-dashboard design «Strings»: team copy except the SoW glossary terms and filter names.
   dashboard: {
@@ -63,13 +70,12 @@ export const ru = {
     allCities: "Все города",
     allBillboards: "Все билборды",
     screens: "Экраны в сети",
-    online: "Онлайн",
-    offline: "Офлайн",
+    onlineOffline: "Онлайн / офлайн", // team: one card, «онлайн» and «офлайн» counts
     activeCampaigns: "Активные кампании",
-    occupancy: "Занятость рекламного инвентаря, %",
+    occupancy: "Занятость рекламного инвентаря",
     plannedShows: "Запланированные показы",
     logShows: "Показы по журналу",
-    contacts: "Оценочные контакты с аудиторией",
+    contacts: "Оценочные контакты с кампанией",
     looks: "Взгляды на экран",
     occupancyChart: "Занятость по дням",
     screensByCity: "Экраны по городам",
@@ -79,6 +85,7 @@ export const ru = {
     noNotifications: "Нет уведомлений",
     chartDate: "Дата", // team: column of the chart's table view
     noActive: "Нет активных кампаний", // team: empty state of the active campaigns list
+    allOffline: "Все недоступные экраны", // team: link to the list filtered by «офлайн»
   },
   // f03-04-billboards design "Strings" (team copy); «Билборды» is routes.billboards, «нет камеры» is OQ-3.
   billboards: {
@@ -90,7 +97,7 @@ export const ru = {
     colOccupancy: "Занятость, %",
     colActiveCampaigns: "Активные кампании",
     colCamera: "Камера",
-    colAudience: "Аудитория за период",
+    colAudience: "Трафик за период",
     cameraYes: "есть",
     cameraNo: "нет",
     noCamera: "нет камеры",
@@ -107,7 +114,6 @@ export const ru = {
     mapUnavailable: "Карта недоступна. Список работает.",
     roundTheClock: "Круглосуточно",
     hoursRange: "{from}–{to}",
-    percent: "{value} %", // team
     location: "Расположение",
     occupancyToday: "Занятость сегодня",
     campaigns: "Кампании на экране",
@@ -118,9 +124,9 @@ export const ru = {
     colShowHours: "Часы показа",
     colSlots: "Слотов за цикл",
     scheduleToday: "Расписание на сегодня",
-    slotsUsed: "{used} из 12 слотов",
+    slotsUsed: "{used} из {total} слотов",
     audience: "Аудитория за 7 дней",
-    people: "Люди в зоне видимости",
+    people: "Трафик: люди в зоне наблюдения",
     looks: "Взгляды на экран",
     vehicles: "Транспорт",
     events: "Последние события",
@@ -135,17 +141,17 @@ export const ru = {
     cities: "Города",
     city: "Город",
     screens: "Экраны",
-    screenCount: "Экранов: {count}",
     status: "Статус",
     planned: "Запланированные показы",
     log: "Показы по журналу",
     empty: "Кампаний пока нет",
     hours: "Часы показа",
-    slots: "Слотов в минутном цикле",
+    slots: "Слотов в цикле",
     creative: "Креатив",
     back: "К списку кампаний",
-    screenCode: "Код",
     screenStatus: "Состояние",
+    logNotSimulated: "Журнал не смоделирован", // team: hint on a 0 of shows by the log
+    showInSchedule: "Показать в расписании", // team: opens «Расписание» with this campaign marked
   },
   // f06-campaign-create design «Strings»: team copy; TODO(client) confirm the field labels.
   campaignForm: {
@@ -161,15 +167,18 @@ export const ru = {
       screenIds: "Экраны",
       startHour: "Начало показа",
       endHour: "Конец показа",
-      slotsPerCycle: "Слотов в минутном цикле",
+      slotsPerCycle: "Слотов в цикле",
       creative: "Креатив",
     },
-    slotsHint: "1 слот = {slot} сек. в цикле {cycle} сек.",
+    slotsHint: "1 слот = {slot} сек., цикл {cycle} сек.",
     creativePlaceholder: "Готовый макет",
     creativeVideo: "Видео 5 сек.",
     placeholderItem: "Макет {n}", // team: accessible name of a placeholder image
     fits: "Свободных слотов достаточно",
-    previewEmpty: "Выберите экраны, даты и часы показа, чтобы проверить свободные слоты.", // team: preview empty state
+    previewEmpty: "Выберите экраны, даты и часы показа — здесь появится расчёт показов.", // team: preview empty state
+    conflictTitle: "Недостаточно свободных слотов", // errors.SLOT_CONFLICT, shown as a title over its {list}
+    conflictLine: "{screen} — {dates}, {hours}", // team: one screen of the conflict list
+    conflictHint: "Уменьшите число слотов или измените даты", // team: why «Сохранить» is off
     plannedTitle: "Запланированные показы",
     perScreenPerDay: "На экран в день",
     perDay: "Всего в день",
@@ -186,8 +195,9 @@ export const ru = {
     date: "Дата",
     selectBillboard: "Выберите билборд, чтобы увидеть расписание",
     hourRange: "{from}–{to}",
-    slotsUsed: "Занято {used} из 12",
+    slotsUsed: "Занято {used} из {total}",
     cycleTitle: "Минутный цикл",
+    marked: "Выделенная кампания", // team: accessible note on a slot of the campaign opened from its card
   },
   // f08-audience-analytics design «Strings»: SoW glossary terms verbatim; texts marked team are team copy.
   audience: {
@@ -204,17 +214,18 @@ export const ru = {
     age55: "55+",
     filterBillboard: "Билборд", // team
     filterPeriod: "Период", // team
-    people: "Трафик: люди в зоне обзора", // team
+    people: "Трафик: люди в зоне наблюдения", // team
     vehicles: "Трафик: транспорт", // team
     looks: "Взгляды на экран", // team
-    lookShare: "Доля взглядов среди людей с оценённым направлением взгляда, %", // team
+    lookShare: "Доля взглядов среди людей с оценённым направлением взгляда", // team
     byHour: "Аудитория и взгляды по часам", // team
     chartHour: "Час", // team: column of the chart's table view
     age: "Возраст (предположительно)", // team
     gender: "Пол (предположительно)", // team
     male: "Мужчины", // team
     female: "Женщины", // team
-    percent: "{value} %", // team
+    noCameraTitle: "Камеры нет", // team: empty state title
+    noCameraBody: "На экране {name} нет камеры, поэтому аналитика аудитории недоступна. Выберите экран с камерой.", // team
     termsTitle: "Термины", // team
     // TODO(client): exact text of the algorithm-estimate note (SoW §4.8 AC2); team draft below.
     estimateNote: "Возраст и пол — оценка алгоритма, не точные данные.", // team
@@ -248,14 +259,19 @@ export const ru = {
     screens: "Экраны",
     byDay: "Показы по дням",
     byScreen: "Распределение по экранам",
-    noCamera: "Экранов без камеры: {count} (нет камеры)",
+    noCamera: "{screens} — нет камеры, в аналитике экранов не учтены", // team; «нет камеры» is OQ-3
     noPlan: "—",
-    percent: "{value} %", // team
     date: "Дата", // team: column of the chart's table view
+    masthead: "{app} · Отчёт по кампании", // team: report masthead (screen and paper)
+    generatedOn: "Сформирован: {date}", // team
+    wholePeriod: "Весь период кампании", // team: empty period filter
+    screensByCity: "{screens}: {cities}", // team: «30 экранов: Астана — 20, Караганда — 10»
+    cityCount: "{city} — {count}", // team
   },
   simulate: {
     // f10-simulate-shows; button from SoW 4.10, done is team copy
     button: "Смоделировать показы",
     done: "Показы смоделированы: {from} – {to}",
+    logFull: "Журнал показов заполнен. Сбросьте демо, чтобы смоделировать показы снова.", // team: log row budget used up
   },
 };

@@ -35,7 +35,7 @@ DC="docker compose -p $P --env-file .env -f docker-compose.yml"
 
 | Task | Command |
 | --- | --- |
-| First setup | `cp .env.example .env && chmod 600 .env`, then set `POSTGRES_PASSWORD` (`openssl rand -hex 24`) and `INSTANCE_SECRET` (`openssl rand -hex 32`) |
+| First setup | `cp .env.example .env && chmod 600 .env`, then set `POSTGRES_PASSWORD` (`openssl rand -hex 24`) and `INSTANCE_SECRET` (`openssl rand -hex 32`). The template ships `REDACT_LOGS_TO_CLIENT=1` (errors redacted); only the laptop `.env` may set it empty for e2e |
 | Start | `$DC up -d --wait` |
 | Admin key | `$DC exec backend ./generate_admin_key.sh` (write it to a gitignored file, mode 600; do not print it in logs) |
 | Push code | `CONVEX_SELF_HOSTED_URL=http://127.0.0.1:3410 CONVEX_SELF_HOSTED_ADMIN_KEY=<key> npx convex deploy --yes` |
@@ -52,9 +52,10 @@ Same file. In `.env` on the VM:
 
 - `CONVEX_CLOUD_ORIGIN=https://<api domain>`, `CONVEX_SITE_ORIGIN=https://<site domain>`, `DASHBOARD_DEPLOYMENT_URL=https://<api domain>`; set `CONVEX_API_DOMAIN`, `CONVEX_SITE_DOMAIN`, `CONVEX_DASHBOARD_DOMAIN`, `ACME_EMAIL`. Start with `$DC --profile https up -d --wait`.
 - Keep `BIND_ADDRESS=127.0.0.1`: only Caddy is public.
-- `REDACT_LOGS_TO_CLIENT=1`.
+- Keep `REDACT_LOGS_TO_CLIENT=1` (the template default). Check: `$DC exec backend printenv REDACT_LOGS_TO_CLIENT` prints `1`.
 - Managed Postgres: `POSTGRES_URL=postgresql://user:pass@host:port` (no database name), `DO_NOT_REQUIRE_SSL=` (empty). Create the database `convex_self_hosted` first.
 - Restrict the dashboard (IP allowlist or basic auth in Caddy) before you expose it.
+- Keep the upload size cap in the `Caddyfile` (KI-03): `request_body /api/storage/upload*` with `max_size 21MB` refuses a video body past 20 MB (+1 MB margin) at the proxy, before Convex stores it. Change it together with `VIDEO_MAX_BYTES` (`convex/lib/config.ts`).
 - Check the VM region and the database region against the data residency rule in `CLAUDE.md` before the first deploy.
 - Never set `DEV_IDENTITY_KEY` on the stack. Never seed production.
 

@@ -123,8 +123,12 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     await expect(conflict.first()).toContainText('Недостаточно свободных слотов');
     await expect(conflict.first()).toContainText(/KRG-00[345]/);
     await expect(conflict.first()).toContainText(/\d{2}:00/);
-    await page.getByRole('button', { name: L('campaignForm.save') }).click();
-    await expect(page.getByText(/Недостаточно свободных слотов/).nth(1)).toBeVisible();
+    // UX polish: save is disabled while the conflict stands, with a hint; the conflict shows once, in the panel
+    const save = page.getByRole('button', { name: L('campaignForm.save') });
+    await expect(save).toBeDisabled();
+    await expect(page.getByText(L('campaignForm.conflictHint'))).toBeVisible();
+    await expect(page.getByText(/Недостаточно свободных слотов/)).toHaveCount(1);
+    await save.click({ force: true }); // a forced click on the disabled button must not save
     await expect(page).toHaveURL(/\/campaigns\/new$/);
     await shot(page, '06-admin-slot-conflict.png');
 
@@ -139,7 +143,9 @@ test.describe('SoW 7.3 acceptance', { tag: '@acceptance' }, () => {
     const row = page.getByRole('row', { name: new RegExp(NAME) });
     await expect(row).toBeVisible();
     // F-6 AC9: a new campaign has 0 shows by the log until «Смоделировать показы»
-    await expect(row.getByRole('cell').last()).toHaveText('0');
+    // UX polish: the 0 carries the calm hint «Журнал не смоделирован»
+    await expect(row.getByRole('cell').last()).toHaveText(/^0(\D|$)/);
+    await expect(row.getByRole('cell').last()).toContainText(L('campaigns.logNotSimulated'));
     await shot(page, '07-admin-campaign-saved-after-refresh.png');
   });
 
@@ -324,13 +330,16 @@ test.describe('SoW §4 forks', { tag: '@acceptance' }, () => {
     await nav(page).getByRole('link', { name: L('routes.analytics') }).click();
     await pick(page, L('audience.filterBillboard'), new RegExp(`^${code}`));
     await ready(page);
-    await expect(page.getByText(L('audience.noCamera'), { exact: true })).toBeVisible();
+    // UX polish: an empty state «Камеры нет» whose body names the screen and says «нет камеры»
+    await expect(page.getByText(L('audience.noCameraTitle'), { exact: true })).toBeVisible();
+    await expect(page.getByText(new RegExp(`${code}.*${L('audience.noCamera')}`))).toBeVisible();
     await shot(page, 'NC-analytics-no-camera.png');
     // «Летняя акция» runs on AST-001..020 and KRG-001..010; AST-005 has no camera
     await nav(page).getByRole('link', { name: L('routes.reports') }).click();
     await pick(page, L('reports.campaign'), 'Летняя акция');
     await ready(page);
-    await expect(page.getByText(/Экранов без камеры: \d+ \(нет камеры\)/)).toBeVisible();
+    // UX polish copy: «<N> экран(а/ов) — нет камеры, в аналитике экранов не учтены» in «Аналитика экранов»
+    await expect(page.getByRole('region', { name: L('reports.screenAnalytics') }).getByText(/\d+ экран\S* — нет камеры/)).toBeVisible();
   });
 
   test('F-10: «Смоделировать показы» on a «Запланирована» campaign shows a clear refusal', async ({ asRole }) => {

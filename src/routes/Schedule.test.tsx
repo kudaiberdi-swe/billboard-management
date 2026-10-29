@@ -131,7 +131,7 @@ test("[f07-schedule] user selects city billboard and date", () => {
   open(url);
   expect(input("Город").value).toBe("Астана");
   expect(input("Билборд").value).toBe("AST-001 Экран на проспекте");
-  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("30 октября 2026");
+  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("30.10.2026");
   expect(convex.args["schedule:day"]).toMatchObject({ screenId: "s1", date: "2026-10-30" });
 });
 
@@ -146,7 +146,7 @@ test("[f07-schedule] city narrows the billboard picker", () => {
 test("[f07-schedule] date defaults to today", () => {
   today("2026-10-28T20:00:00Z"); // 01:00 on 29 October in UTC+5
   open("/schedule?screen=s1");
-  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("29 октября 2026");
+  expect(screen.getByRole("button", { name: /Дата/ }).textContent).toContain("29.10.2026");
   expect(convex.args["schedule:day"]).toMatchObject({ date: "2026-10-29" });
 });
 
@@ -215,4 +215,43 @@ test("[f07-schedule] unknown screen is refused", () => {
   pick("Билборд", "AST-001 Экран на проспекте");
   expect(screen.queryByRole("alert")).toBeNull();
   expect(screen.getByRole("button", { name: /10:00–11:00/ })).toBeTruthy();
+});
+
+const OTHER: [string, string] = ["c2", "Открытие магазина"];
+const FROM_8 = {
+  ...DAY,
+  screen: { ...DAY.screen, workStartHour: 8 },
+  hours: [
+    { hour: 8, used: 3, slots: slots([SUMMER, OTHER, SUMMER]) },
+    { hour: 9, used: 1, slots: slots([SUMMER]) },
+    ...DAY.hours.slice(1),
+  ],
+};
+
+test("[c00-predeploy-hardening] marked campaign opens its first hour", () => {
+  convex.set("schedule:day", FROM_8);
+  open("/schedule?screen=s1&date=2026-10-30&campaign=c1");
+  // only 08:00–09:00 is open (12 slots shown), without a click
+  expect(screen.getByRole("button", { name: /08:00–09:00/ }).getAttribute("aria-expanded")).toBe("true");
+  expect(screen.getByRole("button", { name: /09:00–10:00/ }).getAttribute("aria-expanded")).toBe("false");
+  expect(cells()).toHaveLength(12);
+  const marked = cells().filter((c) => c.dataset.marked !== undefined);
+  expect(marked).toHaveLength(2);
+  for (const c of marked) {
+    expect(within(c).getByRole("link", { name: "Летняя акция" })).toBeTruthy();
+    expect(within(c).getByText("Выделенная кампания")).toBeTruthy();
+  }
+  const other = cells().find((c) => within(c).queryByRole("link", { name: "Открытие магазина" }))!;
+  expect(other.dataset.marked).toBeUndefined();
+  expect(within(other).queryByText("Выделенная кампания")).toBeNull();
+});
+
+test("[c00-predeploy-hardening] schedule without campaign marks nothing", () => {
+  convex.set("schedule:day", FROM_8);
+  open("/schedule?screen=s1&date=2026-10-30");
+  expect(screen.getAllByRole("button", { name: /\d\d:00–\d\d:00/ }).every((b) => b.getAttribute("aria-expanded") === "false")).toBe(true);
+  expect(cells()).toHaveLength(0);
+  openHour("08:00–09:00");
+  expect(cells().filter((c) => c.dataset.marked !== undefined)).toHaveLength(0);
+  expect(screen.queryByText("Выделенная кампания")).toBeNull();
 });

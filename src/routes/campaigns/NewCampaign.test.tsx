@@ -100,7 +100,7 @@ function pickVideo(type = "video/mp4") {
 
 test("[f06-campaign-create] form shows all fields", () => {
   open();
-  for (const label of ["Название", "Рекламодатель", "Дата начала", "Дата окончания", "Экраны", "Начало показа", "Конец показа", "Слотов в минутном цикле"]) {
+  for (const label of ["Название", "Рекламодатель", "Дата начала", "Дата окончания", "Экраны", "Начало показа", "Конец показа", "Слотов в цикле"]) {
     expect(screen.getAllByLabelText(label).length).toBeGreaterThan(0);
   }
   expect(screen.getByRole("group", { name: "Креатив" })).toBeTruthy();
@@ -134,8 +134,8 @@ test("[f06-campaign-create] field error names the form field", async () => {
 
 test("[f06-campaign-create] slot choice follows the cycle setting", () => {
   open();
-  expect(screen.getByText("1 слот = 5 сек. в цикле 60 сек.")).toBeTruthy();
-  fireEvent.click(screen.getByLabelText("Слотов в минутном цикле", { selector: "input" }));
+  expect(screen.getByText("1 слот = 5 сек., цикл 60 сек.")).toBeTruthy();
+  fireEvent.click(screen.getByLabelText("Слотов в цикле", { selector: "input" }));
   expect(screen.getAllByRole("option").map((o) => o.textContent)).toEqual(
     Array.from({ length: 12 }, (_, i) => String(i + 1)),
   );
@@ -173,7 +173,7 @@ test("[f06-campaign-create] sixth upload URL in a burst", async () => {
 
 test("[f06-campaign-create] preview is shown before save", async () => {
   open();
-  expect(screen.getByText("Выберите экраны, даты и часы показа, чтобы проверить свободные слоты.")).toBeTruthy();
+  expect(screen.getByText("Выберите экраны, даты и часы показа — здесь появится расчёт показов.")).toBeTruthy();
   pickScreen("AST-001 Demo Экран 1");
   expect(await screen.findByText("Свободных слотов достаточно")).toBeTruthy();
   const preview = within(screen.getByRole("table"));
@@ -186,13 +186,15 @@ test("[f06-campaign-create] preview is shown before save", async () => {
     conflicts: [{ screenId: "s1", date: "2026-11-03", hour: 10, free: 2, requested: 3 }],
     conflictCount: 1,
   });
-  expect(
-    await screen.findByText("Недостаточно свободных слотов. Конфликт: AST-001 Demo Экран 1: 03.11.2026, 10:00–11:00."),
-  ).toBeTruthy();
+  // the conflict shows once, in the preview panel: a title and one line per screen; «Сохранить» is off
+  expect(await screen.findByText("Недостаточно свободных слотов")).toBeTruthy();
+  expect(screen.getAllByText("AST-001 Demo Экран 1 — 03.11.2026, 10:00–11:00")).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "Сохранить" }).hasAttribute("disabled")).toBe(true);
+  expect(screen.getByText("Уменьшите число слотов или измените даты")).toBeTruthy();
   expect(convex.mutations["campaigns:create"]).not.toHaveBeenCalled();
 });
 
-test("[f06-campaign-create] conflict blocks the save", async () => {
+const conflictBlocksTheSave = async () => {
   convex.mutations["campaigns:create"].mockRejectedValue(
     new ConvexError({ code: "SLOT_CONFLICT", conflicts: [{ screenId: "s1", date: "2026-11-03", hour: 10, free: 2, requested: 3 }] }),
   );
@@ -200,13 +202,67 @@ test("[f06-campaign-create] conflict blocks the save", async () => {
   fireEvent.change(screen.getByLabelText("Название"), { target: { value: "Demo Осенняя акция" } });
   pickScreen("AST-001 Demo Экран 1");
   save();
-  const alerts = await screen.findAllByText(
-    "Недостаточно свободных слотов. Конфликт: AST-001 Demo Экран 1: 03.11.2026, 10:00–11:00.",
-  );
-  expect(alerts.length).toBeGreaterThan(0);
+  // the refused save shows its conflicts once, in the preview panel
+  expect(await screen.findByText("Недостаточно свободных слотов")).toBeTruthy();
+  expect(screen.getAllByText("AST-001 Demo Экран 1 — 03.11.2026, 10:00–11:00")).toHaveLength(1);
   expect(convex.mutations["campaigns:create"]).toHaveBeenCalledTimes(1);
   expect((screen.getByLabelText("Название") as HTMLInputElement).value).toBe("Demo Осенняя акция");
   expect(path()).toBe("/campaigns/new");
+};
+test("[f06-campaign-create] conflict blocks the save", conflictBlocksTheSave);
+test("[c00-predeploy-hardening] conflict blocks the save", conflictBlocksTheSave);
+
+const conflictAt = (date: string, hour: number) => ({ screenId: "s1", date, hour, free: 2, requested: 3 });
+/** The red panel alert: its title and its lines. */
+const panel = () => screen.getByText("Недостаточно свободных слотов").closest<HTMLElement>(".mantine-Alert-root")!;
+
+test("[c00-predeploy-hardening] conflict message names screens and hours", async () => {
+  convex.set("campaigns:checkAvailability", {
+    ...FITS,
+    conflicts: ["2026-11-03", "2026-11-04", "2026-11-05"].flatMap((d) => [conflictAt(d, 10), conflictAt(d, 11)]),
+    conflictCount: 6,
+  });
+  open();
+  pickScreen("AST-001 Demo Экран 1");
+  expect(await screen.findByText("Недостаточно свободных слотов")).toBeTruthy();
+  expect(within(panel()).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+    "AST-001 Demo Экран 1 — 03.11.2026–05.11.2026, 10:00–12:00",
+  ]);
+});
+
+test("[c00-predeploy-hardening] save is off during a conflict", async () => {
+  convex.set("campaigns:checkAvailability", { ...FITS, conflicts: [conflictAt("2026-11-03", 10)], conflictCount: 1 });
+  open();
+  pickScreen("AST-001 Demo Экран 1");
+  expect(await screen.findByText("Недостаточно свободных слотов")).toBeTruthy();
+  const button = screen.getByRole("button", { name: "Сохранить" });
+  expect(button.hasAttribute("disabled")).toBe(true);
+  expect(screen.getByText("Уменьшите число слотов или измените даты")).toBeTruthy();
+  expect(screen.getAllByText("Недостаточно свободных слотов")).toHaveLength(1);
+  expect(screen.queryByText(/Конфликт:/)).toBeNull();
+});
+
+test("[c00-predeploy-hardening] refused save shows in the panel", async () => {
+  convex.mutations["campaigns:create"].mockRejectedValue(
+    new ConvexError({ code: "SLOT_CONFLICT", conflicts: [conflictAt("2026-11-03", 10)] }),
+  );
+  open();
+  fireEvent.change(screen.getByLabelText("Название"), { target: { value: "Demo Осенняя акция" } });
+  pickScreen("AST-001 Demo Экран 1");
+  expect(await screen.findByText("Свободных слотов достаточно")).toBeTruthy(); // the preview showed no conflict
+  save();
+  expect(await screen.findByText("Недостаточно свободных слотов")).toBeTruthy();
+  expect(within(panel()).getAllByRole("listitem").map((li) => li.textContent)).toEqual([
+    "AST-001 Demo Экран 1 — 03.11.2026, 10:00–11:00",
+  ]);
+  expect(screen.getByRole("button", { name: "Сохранить" }).hasAttribute("disabled")).toBe(true);
+  // the name is not part of the request: still off
+  fireEvent.change(screen.getByLabelText("Название"), { target: { value: "Demo Другая" } });
+  expect(screen.getByRole("button", { name: "Сохранить" }).hasAttribute("disabled")).toBe(true);
+  // another screen changes the request: the refused conflict no longer applies
+  pickScreen("AST-002 Demo Экран 2");
+  await waitFor(() => expect(screen.getByRole("button", { name: "Сохранить" }).hasAttribute("disabled")).toBe(false));
+  expect(screen.queryByText("Недостаточно свободных слотов")).toBeNull();
 });
 
 test("[f06-campaign-create] form returns to the campaigns list", async () => {

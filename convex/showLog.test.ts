@@ -178,7 +178,7 @@ test("[f10-simulate-shows] finished campaign keeps its last 31 days", async () =
   expect(result).toMatchObject({ from: "2026-08-31", to: "2026-09-30" });
 });
 
-test("[f10-simulate-shows] new log values reach the readers", async () => {
+const readersGetNewValues = async () => {
   clock("2026-10-28", 11);
   const { t, sessionId } = await seeded();
   const c = await byName(t, "Презентация автомобиля");
@@ -189,14 +189,21 @@ test("[f10-simulate-shows] new log values reach the readers", async () => {
   const card = await t.query(api.campaigns.get, { sessionId, campaignId: c._id });
   expect(card.logShows).toBe(rows.reduce((sum, r) => sum + r.shows, 0));
   expect(card.logShows).toBeGreaterThan(0);
-  const byDate = await t.run((ctx) =>
-    ctx.db.query("showLog").withIndex("by_date", (q) => q.gte("date", c.startDate).lte("date", kzNow(Date.now()).date)).collect(),
-  );
-  const ids = new Set(rows.map((r) => r._id));
-  expect(byDate.filter((r) => ids.has(r._id))).toHaveLength(rows.length);
-});
+  // «Главная» and «Отчёты» read the rows by campaign: both count exactly the written rows of this campaign.
+  const today = kzNow(Date.now()).date;
+  const written = rows.reduce((sum, r) => sum + r.shows, 0);
+  const report = await t.query(api.reports.campaign, { sessionId, campaignId: c._id });
+  expect(report.placement.logShows).toBe(written);
+  const screenId = rows[0].screenId;
+  const home = await t.query(api.dashboard.summary, { sessionId, from: c.startDate, to: today, screenId });
+  const others = (await allLog(t)).filter((r) => r.campaignId !== c._id && r.screenId === screenId && r.date >= c.startDate && r.date <= today);
+  const ownOnScreen = rows.filter((r) => r.screenId === screenId).reduce((sum, r) => sum + r.shows, 0);
+  expect(home.logShows).toBe(ownOnScreen + others.reduce((sum, r) => sum + r.shows, 0));
+};
+test("[f10-simulate-shows] new log values reach the readers", readersGetNewValues);
+test("[c00-predeploy-hardening] new log values reach the readers", readersGetNewValues);
 
-test("[f10-simulate-shows] deleted campaign is refused", async () => {
+const deletedRefused = async () => {
   clock("2026-10-28", 11);
   const { t, sessionId } = await seeded();
   const old = await byName(t, "Летняя акция");
@@ -205,9 +212,11 @@ test("[f10-simulate-shows] deleted campaign is refused", async () => {
   expect(await errorCode(t.mutation(api.showLog.simulate, { sessionId, campaignId: old._id }))).toBe("NOT_FOUND");
   expect(await logOf(t, old._id)).toEqual([]);
   expect(await allLog(t)).toEqual(before);
-});
+};
+test("[f10-simulate-shows] deleted campaign is refused", deletedRefused);
+test("[c00-predeploy-hardening] deleted campaign is refused", deletedRefused);
 
-test("[f10-simulate-shows] simulate without session is refused", async () => {
+const noSessionRefused = async () => {
   clock("2026-10-28", 11);
   const { t } = await seeded();
   const c = await byName(t, "Летняя акция");
@@ -220,9 +229,11 @@ test("[f10-simulate-shows] simulate without session is refused", async () => {
     expect(await errorCode(t.mutation(api.showLog.simulate, { sessionId, campaignId: c._id }))).toBe("UNAUTHENTICATED");
   }
   expect(await allLog(t)).toEqual(before);
-});
+};
+test("[f10-simulate-shows] simulate without session is refused", noSessionRefused);
+test("[c00-predeploy-hardening] simulate without session is refused", noSessionRefused);
 
-test("[f10-simulate-shows] not started campaign is refused", async () => {
+const notStartedRefused = async () => {
   clock("2026-10-28", 11);
   const { t, sessionId } = await seeded();
   const c = await byName(t, "Презентация автомобиля");
@@ -231,4 +242,6 @@ test("[f10-simulate-shows] not started campaign is refused", async () => {
   expect(await errorCode(t.mutation(api.showLog.simulate, { sessionId, campaignId: c._id }))).toBe("CAMPAIGN_NOT_STARTED");
   expect((await t.query(api.campaigns.get, { sessionId, campaignId: c._id })).logShows).toBe(0);
   expect(await allLog(t)).toEqual(before);
-});
+};
+test("[f10-simulate-shows] not started campaign is refused", notStartedRefused);
+test("[c00-predeploy-hardening] not started campaign is refused", notStartedRefused);

@@ -178,6 +178,37 @@ test("[base-contract] reset confirmed", async () => {
   expect(screen.getByRole("heading", { level: 1, name: "Главная" })).toBeTruthy();
 });
 
+test("[c00-predeploy-hardening] sign out returns to the password screen", async () => {
+  open("/campaigns");
+  const before = localStorage.getItem("billboard.sessionId");
+  expect(before).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Выйти" }));
+  expect(await screen.findByLabelText("Пароль", { exact: false })).toBeTruthy();
+  expect(path()).toBe("/login");
+  expect(menu()).toBeNull();
+  expect(localStorage.getItem("billboard.sessionId")).not.toBe(before);
+});
+
+test("[c00-predeploy-hardening] sign out keeps the server session", async () => {
+  open("/campaigns");
+  fireEvent.click(screen.getByRole("button", { name: "Выйти" }));
+  expect(await screen.findByLabelText("Пароль", { exact: false })).toBeTruthy();
+  // client-side only: the click calls no backend function, so the server row stays (convex/demo.test.ts)
+  for (const m of Object.values(convex.mutations)) expect(m).not.toHaveBeenCalled();
+});
+
+test("[predeploy] a failed session check offers a retry instead of a blank page", async () => {
+  const quiet = vi.spyOn(console, "error").mockImplementation(() => {}); // React logs the caught render error
+  convex.set("demo:sessionStatus", new Error("timeout"));
+  open("/");
+  expect(screen.getByRole("alert").textContent).toBe("Не удалось проверить вход. Проверьте подключение и повторите.");
+  convex.set("demo:sessionStatus", { valid: false });
+  fireEvent.click(screen.getByRole("button", { name: "Повторить" }));
+  expect(await screen.findByLabelText("Пароль", { exact: false })).toBeTruthy();
+  expect(screen.queryByRole("alert")).toBeNull();
+  quiet.mockRestore();
+});
+
 test("[base-contract] demo label shows the verbatim text", () => {
   render(
     <MantineProvider theme={theme}>

@@ -1,6 +1,7 @@
 // Campaign queries (design D7). Two owners, append-only with distinct names: f05 (list, get), f06 (check, create, upload).
 import { v, type Infer } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
+import { internal } from "./_generated/api";
 import type { Doc, Id } from "./_generated/dataModel";
 import { city, creative, screenStatus } from "./schema";
 import { requireActor } from "./lib/auth";
@@ -30,7 +31,8 @@ const summaryFields = {
 async function summary(ctx: QueryCtx, c: Doc<"campaigns">, screens: Doc<"screens">[], today: string) {
   const own = screens.filter((s) => c.screenIds.includes(s._id));
   const plan = plannedShows(c, own, c.startDate, c.endDate);
-  // shortcut: reads the whole log of the campaign (≤ screens × days); store a total if the log outgrows the read limit.
+  // shortcut: reads the whole log of the campaign; all campaigns together stay ≤ LOG_ROW_BUDGET (showLog.simulate, KI-04),
+  // so campaigns.list fits one query. Store per-campaign totals (schema change) if the log must grow past that.
   const log = await ctx.db
     .query("showLog")
     .withIndex("by_campaign", (q) => q.eq("campaignId", c._id))
@@ -243,21 +245,35 @@ export const generateUploadUrl = mutation({
 });
 
 const ORPHAN_AGE_MS = 24 * 3_600_000;
+export const SWEEP_PAGE = 500;
+export const SWEEP_MAX_PAGES = 40; // per daily run: 20 000 files, far above the ~730 upload URLs a day the global limit allows
 
-/** Daily cron (convex/crons.ts): deletes uploads older than 24 h that no campaign uses (abandoned or rejected forms). */
+/**
+ * Daily cron (convex/crons.ts): deletes uploads older than 24 h that no campaign uses (abandoned or rejected forms).
+ * KI-03: walks every file older than 24 h in pages (referenced files are skipped, not counted against the run) and
+ * reschedules itself until the end or SWEEP_MAX_PAGES. Returns the files deleted by this page.
+ */
 export const sweepOrphanUploads = internalMutation({
-  args: {},
+  args: { cursor: v.optional(v.string()), before: v.optional(v.number()), page: v.optional(v.number()) },
   returns: v.number(),
-  handler: async (ctx) => {
+  handler: async (ctx, args): Promise<number> => {
+    const before = args.before ?? Date.now() - ORPHAN_AGE_MS; // fixed for the whole run, so the cursor stays valid
+    const page = args.page ?? 1;
     const used = new Set<string>();
     for (const c of await ctx.db.query("campaigns").collect()) if (c.creative.kind === "video") used.add(c.creative.storageId);
-    // shortcut: 500 oldest files per run; the upload rate limit keeps new orphans far below that per day.
-    const files = await ctx.db.system
+    const result = await ctx.db.system
       .query("_storage")
-      .withIndex("by_creation_time", (q) => q.lt("_creationTime", Date.now() - ORPHAN_AGE_MS))
-      .take(500);
-    const orphans = files.filter((f) => !used.has(f._id));
+      .withIndex("by_creation_time", (q) => q.lt("_creationTime", before))
+      .paginate({ cursor: args.cursor ?? null, numItems: SWEEP_PAGE });
+    const orphans = result.page.filter((f) => !used.has(f._id));
     for (const f of orphans) await ctx.storage.delete(f._id);
+    if (!result.isDone && page < SWEEP_MAX_PAGES) {
+      await ctx.scheduler.runAfter(0, internal.campaigns.sweepOrphanUploads, {
+        cursor: result.continueCursor,
+        before,
+        page: page + 1,
+      });
+    }
     return orphans.length;
   },
 });

@@ -10,13 +10,13 @@ import "@mantine/dates/styles.css";
 import "@mantine/charts/styles.css";
 import "./print.css";
 import { Gate } from "./shell/Gate";
-import { theme } from "./theme";
+import { cssVariablesResolver, theme } from "./theme";
 
 const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MantineProvider theme={theme}>
+    <MantineProvider theme={theme} cssVariablesResolver={cssVariablesResolver}>
       <DatesProvider settings={{ locale: "ru" }}>
         <ConvexProvider client={convex}>
           <BrowserRouter>

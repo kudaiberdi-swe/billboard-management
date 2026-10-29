@@ -1,6 +1,6 @@
 // Demo access, seed and reset (design D3, D3a, D7; ADR-0003, ADR-0006).
 import { v } from "convex/values";
-import { internal } from "./_generated/api";
+import { components, internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
 import { internalMutation, mutation, query, type MutationCtx } from "./_generated/server";
 import { requireActor } from "./lib/auth";
@@ -132,5 +132,43 @@ export const clearSessions = internalMutation({
     const rows = await ctx.db.query("demoSessions").collect(); // shortcut: one row per viewer browser; paginate if it grows past a few thousand
     for (const row of rows) await ctx.db.delete(row._id);
     return rows.length;
+  },
+});
+
+export const SESSION_PAGE = 500;
+
+/**
+ * Daily cron (KI-06): deletes expired demo sessions in pages of SESSION_PAGE, rescheduling itself until the table end.
+ * No index on expiresAt (locked schema): it walks the table and deletes the rows whose expiresAt is past.
+ */
+export const purgeExpiredSessions = internalMutation({
+  args: { cursor: v.optional(v.string()), now: v.optional(v.number()) },
+  returns: v.number(),
+  handler: async (ctx, args): Promise<number> => {
+    const now = args.now ?? Date.now(); // fixed for the whole run
+    const result = await ctx.db.query("demoSessions").paginate({ cursor: args.cursor ?? null, numItems: SESSION_PAGE });
+    const expired = result.page.filter((row) => row.expiresAt <= now);
+    for (const row of expired) await ctx.db.delete(row._id);
+    if (!result.isDone) {
+      await ctx.scheduler.runAfter(0, internal.demo.purgeExpiredSessions, { cursor: result.continueCursor, now });
+    }
+    return expired.length;
+  },
+});
+
+const RATE_LIMIT_ROW_AGE_MS = 3_600_000;
+
+/**
+ * Daily cron (KI-06): drops rate-limiter rows created over 1 h ago (one row per sessionId ever tried; the component
+ * never expires them). Every bucket in rateLimits.ts refills in under 1 h, so an idle old row equals a fresh one.
+ * A row created earlier but used in the last hour also goes: that key gets one fresh bucket, at most once a day.
+ */
+export const clearOldRateLimits = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    // clearAll deletes 100 rows per run and reschedules itself for the rest.
+    await ctx.runMutation(components.rateLimiter.lib.clearAll, { before: Date.now() - RATE_LIMIT_ROW_AGE_MS });
+    return null;
   },
 });

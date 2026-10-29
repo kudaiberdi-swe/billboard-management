@@ -86,7 +86,7 @@ test("[f03-04-billboards] list row shows every required field", async () => {
   expect(within(rowOf("Экран Караганда 1")).getByText("офлайн")).toBeTruthy();
   expect(within(rowOf("Экран Караганда 1")).getByText("Круглосуточно")).toBeTruthy();
   expect(screen.getByText("Демонстрационные данные")).toBeTruthy();
-  expect(screen.getByText("Период: 2026-10-22 – 2026-10-28")).toBeTruthy();
+  expect(screen.getByText("Период: 22.10.2026 – 28.10.2026")).toBeTruthy();
 });
 
 test("[f03-04-billboards] screen without a camera shows нет камеры", async () => {

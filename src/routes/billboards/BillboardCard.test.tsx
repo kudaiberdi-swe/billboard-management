@@ -88,7 +88,7 @@ test("[f03-04-billboards] unknown screen id", () => {
 test("[f03-04-billboards] card shows the demo audience", () => {
   open(card());
   const audience = block("Аудитория за 7 дней");
-  for (const text of ["Люди в зоне видимости", "980", "Взгляды на экран", "120", "Транспорт", "300", "Демонстрационные данные"]) {
+  for (const text of ["Трафик: люди в зоне наблюдения", "980", "Взгляды на экран", "120", "Транспорт", "300", "Демонстрационные данные"]) {
     expect(audience.getByText(text)).toBeTruthy();
   }
 });
@@ -97,7 +97,7 @@ test("[f03-04-billboards] card of a screen without a camera", () => {
   open(card({ screen: { hasCamera: false, hasVehicleMetric: false }, audience: null }));
   const audience = block("Аудитория за 7 дней");
   expect(audience.getByText("нет камеры")).toBeTruthy();
-  expect(audience.queryByText("Люди в зоне видимости")).toBeNull();
+  expect(audience.queryByText("Трафик: люди в зоне наблюдения")).toBeNull();
   expect(audience.queryByText(/^[\d\s]+$/)).toBeNull(); // no number values
 });
 
@@ -113,7 +113,7 @@ test("[f03-04-billboards] card shows recent screen events", () => {
   open(card({ screen: { status: "offline" } }));
   const events = block("Последние события");
   expect(events.getByText("Экран недоступен")).toBeTruthy();
-  expect(events.getByText("2026-10-27 14:05")).toBeTruthy();
+  expect(events.getByText("27.10.2026 14:05")).toBeTruthy();
 });
 
 test("[f03-04-billboards] screen without events", () => {

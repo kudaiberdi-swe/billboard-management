@@ -7,6 +7,8 @@ import {
   Group,
   Image,
   FileInput,
+  Input,
+  List,
   MultiSelect,
   Paper,
   Radio,
@@ -37,20 +39,20 @@ import {
 import { fail } from "../../../convex/lib/errors";
 import type { Conflict } from "../../../convex/lib/slots";
 import { addDays, diffDays, isDate, kzNow } from "../../../convex/lib/time";
-import { t, text, type StringsKey } from "../../../shared/strings";
+import { t, type StringsKey } from "../../../shared/strings";
 import { errorCode } from "../../errors";
+import { formatHour, formatNumber, screenTitle } from "../../format";
 import { useGuardedMutation, useGuardedQuery, useSubmit } from "../../session";
-import { conflictList, hh } from "./conflictList";
+import { DATE_FORMAT, SELECTED_OUTLINE } from "../../theme";
+import { conflictList } from "./conflictList";
 
-type Screen = { _id: Id<"screens">; code: string; name: string };
 type PlaceholderKey = (typeof PLACEHOLDER_KEYS)[number];
 
 const L = (key: StringsKey) => t("ru", key);
 const field = (name: string) => L(`campaignForm.fields.${name}` as StringsKey);
-const count = new Intl.NumberFormat("ru-RU");
 const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => String(from + i));
-const START_HOURS = range(0, 23).map((h) => ({ value: h, label: hh(Number(h)) }));
-const END_HOURS = range(1, 24).map((h) => ({ value: h, label: hh(Number(h)) }));
+const START_HOURS = range(0, 23).map((h) => ({ value: h, label: formatHour(Number(h)) }));
+const END_HOURS = range(1, 24).map((h) => ({ value: h, label: formatHour(Number(h)) }));
 const SLOTS = range(1, SLOTS_PER_CYCLE);
 const DURATION_TOLERANCE = 0.5; // spec: 4.5–5.5 s
 
@@ -70,15 +72,19 @@ function videoDuration(file: File): Promise<number> {
   });
 }
 
-/** Fills the message params the server cannot: the field label and the conflict list. */
-function readable(error: unknown, screens: Screen[]): unknown {
+/** Fills the message param the server cannot: the field label. */
+function readable(error: unknown): unknown {
   if (!(error instanceof ConvexError)) return error;
-  const data = error.data as { field?: unknown; conflicts?: Conflict[] };
+  const data = error.data as { field?: unknown };
   if (errorCode(error) === "INVALID_INPUT" && typeof data.field === "string")
     return new ConvexError({ code: "INVALID_INPUT", field: field(data.field) });
-  if (errorCode(error) === "SLOT_CONFLICT" && data.conflicts)
-    return new ConvexError({ code: "SLOT_CONFLICT", list: conflictList(data.conflicts, screens) });
   return error;
+}
+
+/** SLOT_CONFLICT of a save: its conflicts (someone took the slots after the preview), else undefined. */
+function saveConflicts(error: unknown): Conflict[] | undefined {
+  if (!(error instanceof ConvexError) || errorCode(error) !== "SLOT_CONFLICT") return undefined;
+  return (error.data as { conflicts?: Conflict[] }).conflicts;
 }
 
 export function NewCampaign() {
@@ -97,6 +103,8 @@ export function NewCampaign() {
   const [key, setKey] = useState<PlaceholderKey>("placeholder-1");
   const [file, setFile] = useState<File | null>(null);
   const [video, setVideo] = useState<Id<"_storage">>();
+  // Conflicts returned by a refused save, kept for the request they belong to.
+  const [lost, setLost] = useState<{ request: string; conflicts: Conflict[] }>();
 
   // Ids that vanished after a demo reset drop out of the choice.
   const screenIds = picked.filter((id) => screens?.some((s) => s._id === id)) as Id<"screens">[];
@@ -127,6 +135,14 @@ export function NewCampaign() {
     setVideo(((await res.json()) as { storageId: Id<"_storage"> }).storageId);
   });
 
+  // The conflict shows once, in the preview panel: from the live check, or from a save the server refused.
+  const conflicts =
+    preview && preview.conflictCount > 0
+      ? conflictList(preview.conflicts, screens ?? [], preview.conflictCount)
+      : lost && lost.request === JSON.stringify(request)
+        ? conflictList(lost.conflicts, screens ?? [])
+        : undefined;
+
   const create = useGuardedMutation(api.campaigns.create);
   const save = useSubmit(async () => {
     if (kind === "video" && !video) fail("INVALID_CREATIVE");
@@ -134,14 +150,17 @@ export function NewCampaign() {
     try {
       await create({ ...request, name, advertiser, creative });
     } catch (e) {
-      throw readable(e, screens ?? []);
+      const refused = saveConflicts(e);
+      if (!refused) throw readable(e);
+      setLost({ request: JSON.stringify(request), conflicts: refused });
+      return;
     }
     navigate("/campaigns");
   });
 
   const screenLabel = (id: string) => {
     const s = screens?.find((x) => x._id === id);
-    return s ? `${s.code} ${s.name}` : id;
+    return s ? screenTitle(s) : id;
   };
 
   return (
@@ -163,14 +182,14 @@ export function NewCampaign() {
               <SimpleGrid cols={2}>
                 <DatePickerInput
                   label={field("startDate")}
-                  valueFormat="DD.MM.YYYY"
+                  valueFormat={DATE_FORMAT}
                   value={startDate}
                   // fde-echo:local-only form draft; campaigns.create saves it on submit
                   onChange={(d) => setStartDate(d ?? "")}
                 />
                 <DatePickerInput
                   label={field("endDate")}
-                  valueFormat="DD.MM.YYYY"
+                  valueFormat={DATE_FORMAT}
                   value={endDate}
                   minDate={startDate || undefined}
                   // fde-echo:local-only form draft; campaigns.create saves it on submit
@@ -179,7 +198,7 @@ export function NewCampaign() {
               </SimpleGrid>
               <MultiSelect
                 label={field("screenIds")}
-                data={(screens ?? []).map((s) => ({ value: s._id, label: `${s.code} ${s.name}` }))}
+                data={(screens ?? []).map((s) => ({ value: s._id, label: screenTitle(s) }))}
                 value={screenIds}
                 onChange={setPicked}
                 disabled={screens === undefined}
@@ -213,9 +232,9 @@ export function NewCampaign() {
                 />
               </SimpleGrid>
               <Stack gap="xs" role="group" aria-labelledby="creative-label">
-                <Text id="creative-label" size="sm" fw={500}>
+                <Input.Label id="creative-label" labelElement="div">
                   {field("creative")}
-                </Text>
+                </Input.Label>
                 <SegmentedControl
                   value={kind}
                   onChange={(v) => setKind(v as typeof kind)}
@@ -229,7 +248,13 @@ export function NewCampaign() {
                   <Radio.Group value={key} onChange={(v) => setKey(v as PlaceholderKey)}>
                     <SimpleGrid cols={4}>
                       {PLACEHOLDER_KEYS.map((k, i) => (
-                        <Radio.Card key={k} value={k} p="xs" radius="sm">
+                        <Radio.Card
+                          key={k}
+                          value={k}
+                          p="xs"
+                          radius="sm"
+                          style={k === key ? SELECTED_OUTLINE : undefined}
+                        >
                           <Image
                             src={`/demo/creatives/${k}.svg`}
                             alt={t("ru", "campaignForm.placeholderItem", { n: i + 1 })}
@@ -256,13 +281,23 @@ export function NewCampaign() {
               </Stack>
               {save.error && <Alert color="red">{save.error}</Alert>}
               <Group>
-                <Button type="submit" loading={save.busy} disabled={upload.busy}>
+                <Button
+                  type="submit"
+                  loading={save.busy}
+                  disabled={upload.busy || conflicts !== undefined}
+                  aria-describedby={conflicts ? "save-hint" : undefined}
+                >
                   {L("campaignForm.save")}
                 </Button>
                 {/* fde-echo:allow-dead link button: component={Link} navigates back to the list */}
                 <Button component={Link} to="/campaigns" variant="default">
                   {L("campaignForm.cancel")}
                 </Button>
+                {conflicts && (
+                  <Text id="save-hint" size="sm" c="dimmed">
+                    {L("campaignForm.conflictHint")}
+                  </Text>
+                )}
               </Group>
             </Stack>
           </form>
@@ -279,14 +314,16 @@ export function NewCampaign() {
                 </Text>
               ) : preview === undefined ? null : (
                 <>
-                  {preview.conflictCount === 0 ? (
-                    <Alert color="green">{L("campaignForm.fits")}</Alert>
-                  ) : (
-                    <Alert color="red">
-                      {text("ru", "errors.SLOT_CONFLICT", {
-                        list: conflictList(preview.conflicts, screens ?? [], preview.conflictCount),
-                      })}
+                  {conflicts ? (
+                    <Alert color="red" title={L("campaignForm.conflictTitle")}>
+                      <List size="sm" spacing={2}>
+                        {conflicts.map((line) => (
+                          <List.Item key={line}>{line}</List.Item>
+                        ))}
+                      </List>
                     </Alert>
+                  ) : (
+                    <Alert color="teal">{L("campaignForm.fits")}</Alert>
                   )}
                   <Table style={{ fontVariantNumeric: "tabular-nums" }}>
                     <Table.Thead>
@@ -300,7 +337,7 @@ export function NewCampaign() {
                         <Table.Tr key={s.screenId}>
                           <Table.Td>{screenLabel(s.screenId)}</Table.Td>
                           <Table.Td ta="right">
-                            {count.format(s.perDay)}
+                            {formatNumber(s.perDay)}
                           </Table.Td>
                         </Table.Tr>
                       ))}
@@ -308,11 +345,11 @@ export function NewCampaign() {
                     <Table.Tfoot>
                       <Table.Tr>
                         <Table.Th>{L("campaignForm.perDay")}</Table.Th>
-                        <Table.Th ta="right">{count.format(preview.perDay)}</Table.Th>
+                        <Table.Th ta="right">{formatNumber(preview.perDay)}</Table.Th>
                       </Table.Tr>
                       <Table.Tr>
                         <Table.Th>{L("campaignForm.perPeriod")}</Table.Th>
-                        <Table.Th ta="right">{count.format(preview.total)}</Table.Th>
+                        <Table.Th ta="right">{formatNumber(preview.total)}</Table.Th>
                       </Table.Tr>
                     </Table.Tfoot>
                   </Table>

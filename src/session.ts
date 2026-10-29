@@ -26,6 +26,13 @@ export function reportUnauthenticated(): void {
   for (const listener of listeners) listener();
 }
 
+/** Ends the demo session in this browser: forgets the id and returns to the password screen.
+ * shortcut: client-side only, the server session row lives until it expires; add a server logout when one exists. */
+export function signOut(): void {
+  localStorage.removeItem(KEY);
+  reportUnauthenticated();
+}
+
 type Guarded<F extends FunctionReference<"query" | "mutation">> = Omit<FunctionArgs<F>, "sessionId">;
 
 export function useGuardedQuery<Q extends FunctionReference<"query">>(
@@ -54,17 +61,18 @@ export function useGuardedMutation<M extends FunctionReference<"mutation">>(fn: 
 /** Runs a write from a form or button: a busy flag and the Russian text of the last failure. */
 export function useSubmit<A extends unknown[]>(fn: (...args: A) => Promise<unknown>) {
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
+  const [failure, setFailure] = useState<unknown>();
   async function submit(...args: A) {
     setBusy(true);
-    setError(undefined);
+    setFailure(undefined);
     try {
       await fn(...args);
     } catch (e) {
-      setError(errorText(e));
+      setFailure(e ?? new Error());
     } finally {
       setBusy(false);
     }
   }
-  return { submit, busy, error };
+  // error: the Russian text; failure: the raw error, for a caller that branches on its code
+  return { submit, busy, error: failure === undefined ? undefined : errorText(failure), failure };
 }
