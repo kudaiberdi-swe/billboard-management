@@ -37,11 +37,12 @@ Estimated vehicles SHALL be shown only for screens with the vehicle metric (abou
 - **THEN** the first shows the summed vehicles of the period and the second shows no vehicles value
 
 ### Requirement: Screens without a camera
-For a screen without a camera the section SHALL show «нет камеры» instead of the audience values, the chart and the profile (ADR-0005).
+For a screen without a camera the section SHALL show an empty state instead of the audience values, the chart and the profile (ADR-0005): the title «Камеры нет» and the text «На экране {name} нет камеры, поэтому аналитика аудитории недоступна. Выберите экран с камерой.» with the screen name in place of `{name}`.
 
 #### Scenario: screen without a camera
 - **WHEN** R-1 selects a billboard without a camera
-- **THEN** the section shows «нет камеры» and no audience number, chart or profile
+- **THEN** the section shows the title «Камеры нет» and a text that contains «нет камеры» and the screen name
+- **AND** it shows no audience number, chart or profile
 
 ### Requirement: Age and gender estimate
 The section SHALL show the shares of the age groups 18–24, 25–34, 35–44, 45–54, 55+ and of gender labelled «предположительно» (D-10). Both blocks SHALL carry the note that they are an algorithm estimate.
