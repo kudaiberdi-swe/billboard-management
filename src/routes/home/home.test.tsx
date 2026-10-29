@@ -109,11 +109,11 @@ async function pick(label: string, option: string) {
 test("[f02-dashboard] cards show the network values", () => {
   open();
   expect(value("Экраны в сети")).toBe("100");
-  expect(value("Онлайн")).toBe("97");
-  expect(value("Офлайн")).toBe("3");
+  // «онлайн» and «офлайн» share one card: 97 / 3 sums to 100
+  expect(value("Онлайн / офлайн")).toBe("97 / 3");
   expect(value("Активные кампании")).toBe("2");
-  expect(value("Занятость рекламного инвентаря, %")).toBe("18,8");
-  for (const name of ["Запланированные показы", "Показы по журналу", "Оценочные контакты с аудиторией", "Взгляды на экран"]) {
+  expect(value("Занятость рекламного инвентаря")).toBe("18,8\u00a0%");
+  for (const name of ["Запланированные показы", "Показы по журналу", "Оценочные контакты с кампанией", "Взгляды на экран"]) {
     expect(value(name)).toMatch(/\d/);
   }
 });
@@ -128,7 +128,7 @@ test("[f02-dashboard] planned and log shows are separate cards", () => {
 
 test("[f02-dashboard] simulated cards carry the demo label", () => {
   open();
-  for (const name of ["Показы по журналу", "Оценочные контакты с аудиторией", "Взгляды на экран"]) {
+  for (const name of ["Показы по журналу", "Оценочные контакты с кампанией", "Взгляды на экран"]) {
     expect(within(card(name)).getByText("Демонстрационные данные")).toBeTruthy();
   }
   expect(screen.getAllByText("Демонстрационные данные")).toHaveLength(3);
@@ -140,7 +140,7 @@ test("[f02-dashboard] occupancy chart per day", () => {
   const rows = within(table).getAllByRole("row").slice(1);
   expect(rows).toHaveLength(7);
   expect(within(rows[0]).getByText("22.10.2026")).toBeTruthy();
-  expect(within(rows[6]).getByText("16")).toBeTruthy();
+  expect(within(rows[6]).getByText("16 %")).toBeTruthy();
 });
 
 test("[f02-dashboard] screens per city block", () => {
@@ -214,6 +214,20 @@ test("[f02-dashboard] offline screen notification", () => {
   expect(within(list).getByText("KRG-001 Центр")).toBeTruthy();
   // Network-wide: the notifications query takes no filter.
   expect(convex.calls.find((c) => c.name === "dashboard:notifications")!.args).not.toHaveProperty("city");
+});
+
+test("offline screens are one group with links; ending campaigns link to their cards", () => {
+  convex.set("dashboard:notifications", [
+    { kind: "screen_offline", refId: "krg1", name: "KRG-001 Центр" },
+    { kind: "screen_offline", refId: "krg2", name: "KRG-002 Север" },
+    { kind: "campaign_ending", refId: "c2", name: "Открытие магазина" },
+  ]);
+  open();
+  const list = within(region("Уведомления"));
+  expect(list.getAllByText("Экран недоступен")).toHaveLength(1);
+  expect(list.getByRole("link", { name: "KRG-002 Север" }).getAttribute("href")).toBe("/billboards/krg2");
+  expect(list.getByRole("link", { name: "Все недоступные экраны" }).getAttribute("href")).toBe("/billboards?status=offline");
+  expect(list.getByRole("link", { name: "Открытие магазина" }).getAttribute("href")).toBe("/campaigns/c2");
 });
 
 test("[f02-dashboard] ending campaign notification", () => {

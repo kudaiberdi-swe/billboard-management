@@ -1,13 +1,12 @@
-// The {list} of the SLOT_CONFLICT message (design «Conflict message»): per screen its date span and merged hours.
+// The conflict list of the form (design «Conflict message»): one line per screen with its date span and merged hours.
 import type { Conflict } from "../../../convex/lib/slots";
 import { t } from "../../../shared/strings";
+import { formatDate, formatHour, screenTitle } from "../../format";
 
 type ScreenName = { _id: string; code: string; name: string };
 
-const day = (d: string) => d.split("-").reverse().join(".");
-export const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
-
-export function conflictList(conflicts: Conflict[], screens: ScreenName[], count = conflicts.length): string {
+/** Lines ordered by screen code; campaignForm.andMore closes the list when the server sent fewer conflicts than it counted. */
+export function conflictList(conflicts: Conflict[], screens: ScreenName[], count = conflicts.length): string[] {
   const byScreen = new Map<string, Conflict[]>();
   for (const c of conflicts) byScreen.set(c.screenId, [...(byScreen.get(c.screenId) ?? []), c]);
   const parts = [...byScreen].map(([id, list]) => {
@@ -24,14 +23,13 @@ export function conflictList(conflicts: Conflict[], screens: ScreenName[], count
     }
     return {
       code: s?.code ?? id,
-      text: `${s ? `${s.code} ${s.name}` : id}: ${first === last ? day(first) : `${day(first)}–${day(last)}`}, ${ranges
-        .map(([a, b]) => `${hh(a)}–${hh(b)}`)
-        .join(", ")}`,
+      text: t("ru", "campaignForm.conflictLine", {
+        screen: s ? screenTitle(s) : id,
+        dates: first === last ? formatDate(first) : `${formatDate(first)}–${formatDate(last)}`,
+        hours: ranges.map(([a, b]) => `${formatHour(a)}–${formatHour(b)}`).join(", "),
+      }),
     };
   });
-  const list = parts
-    .sort((a, b) => a.code.localeCompare(b.code))
-    .map((p) => p.text)
-    .join("; ");
-  return count > conflicts.length ? `${list} ${t("ru", "campaignForm.andMore")}` : list;
+  const lines = parts.sort((a, b) => a.code.localeCompare(b.code)).map((p) => p.text);
+  return count > conflicts.length ? [...lines, t("ru", "campaignForm.andMore")] : lines;
 }

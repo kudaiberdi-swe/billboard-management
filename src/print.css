@@ -3,12 +3,25 @@
   .no-print {
     display: none !important;
   }
+  /* badge tints, legend dots and chart bars keep their colour on paper */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   /* the hidden menu leaves no gap on paper */
   :root {
     --app-shell-navbar-offset: 0px !important;
   }
   /* f09-reports: one block per page where it fits; charts get a fixed paper width */
   .report-block {
+    break-inside: avoid;
+  }
+  /* a block taller than a page flows on; its value row, chart and table rows never split */
+  .report-flow {
+    break-inside: auto;
+  }
+  .report-keep,
+  .report-block tr {
     break-inside: avoid;
   }
   .report-chart {

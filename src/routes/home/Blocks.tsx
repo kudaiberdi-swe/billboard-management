@@ -1,15 +1,15 @@
 // Occupancy per day, screens per city, active campaigns (spec «Chart, city block and campaign list»).
 import { useId, type ReactNode } from "react";
-import { Paper, Stack, Table, Text, Title, VisuallyHidden } from "@mantine/core";
+import { Anchor, Badge, Group, Paper, Stack, Table, Text, Title, VisuallyHidden } from "@mantine/core";
 import { LineChart } from "@mantine/charts";
 import type { FunctionReturnType } from "convex/server";
-import dayjs from "dayjs";
+import { Link } from "react-router-dom";
 import type { api } from "../../../convex/_generated/api";
 import { t } from "../../../shared/strings";
-import { CHART_HEIGHT, DATE_FORMAT, NUMBER_LOCALE } from "../../theme";
-import { formatNumber, type Summary } from "./Cards";
+import { formatDate, formatNumber, formatPercent } from "../../format";
+import { AXIS_DATE_FORMAT, CHART_HEIGHT, SCREEN_STATUS_COLOR } from "../../theme";
+import type { Summary } from "./Cards";
 
-const formatDate = (d: string) => dayjs(d).format(DATE_FORMAT);
 const NUMERIC = { fontVariantNumeric: "tabular-nums" } as const;
 
 function Block({ title, children }: { title: string; children: (titleId: string) => ReactNode }) {
@@ -34,13 +34,14 @@ export function OccupancyChart({ days }: { days: Summary["occupancyByDay"] }) {
         <>
           <LineChart
             h={CHART_HEIGHT}
-            data={days.map((d) => ({ date: formatDate(d.date), percent: d.percent }))}
+            data={days.map((d) => ({ date: formatDate(d.date, AXIS_DATE_FORMAT), percent: d.percent }))}
             dataKey="date"
             series={[{ name: "percent", label: t("ru", "dashboard.occupancy"), color: "var(--mantine-primary-color-filled)" }]}
             curveType="linear"
             unit="%"
             yAxisProps={{ domain: [0, 100] }}
-            valueFormatter={(v) => v.toLocaleString(NUMBER_LOCALE)}
+            valueFormatter={formatNumber}
+            lineChartProps={{ accessibilityLayer: false }}
             aria-hidden
           />
           {/* Table view of the chart for screen readers. */}
@@ -57,7 +58,7 @@ export function OccupancyChart({ days }: { days: Summary["occupancyByDay"] }) {
                 {days.map((d) => (
                   <Table.Tr key={d.date}>
                     <Table.Td>{formatDate(d.date)}</Table.Td>
-                    <Table.Td>{d.percent.toLocaleString(NUMBER_LOCALE)}</Table.Td>
+                    <Table.Td>{formatPercent(d.percent)}</Table.Td>
                   </Table.Tr>
                 ))}
               </Table.Tbody>
@@ -116,22 +117,51 @@ export function ActiveList({ campaigns }: { campaigns: Summary["activeList"] }) 
   );
 }
 
-export function NotificationList({ items }: { items: FunctionReturnType<typeof api.dashboard.notifications> }) {
+type Notification = FunctionReturnType<typeof api.dashboard.notifications>[number];
+
+/** Offline screens as one group (names link to their cards), then each ending campaign linking to its card. */
+export function NotificationList({ items }: { items: Notification[] }) {
+  const offline = items.filter((n) => n.kind === "screen_offline");
+  const ending = items.filter((n) => n.kind === "campaign_ending");
   return (
     <Block title={t("ru", "dashboard.notificationsTitle")}>
       {() =>
         items.length === 0 ? (
           <Text c="dimmed">{t("ru", "dashboard.noNotifications")}</Text>
         ) : (
-          <Stack gap="xs" component="ul" m={0} p={0} style={{ listStyle: "none" }}>
-            {items.map((n) => (
-              <li key={`${n.kind}-${n.refId}`}>
+          <Stack gap="md" component="ul" m={0} p={0} style={{ listStyle: "none" }}>
+            {offline.length > 0 && (
+              <li>
+                <Group justify="space-between" wrap="nowrap" gap="xs">
+                  <Text size="sm" fw={500}>
+                    {t("ru", "notifications.screen_offline")}
+                  </Text>
+                  <Badge color={SCREEN_STATUS_COLOR.offline} variant="light" style={{ flexShrink: 0 }}>
+                    {formatNumber(offline.length)}
+                  </Badge>
+                </Group>
+                <Group gap={4} component="ul" m={0} mt={4} p={0} style={{ listStyle: "none", columnGap: "var(--mantine-spacing-xs)" }}>
+                  {offline.map((n) => (
+                    <li key={n.refId}>
+                      <Anchor component={Link} to={`/billboards/${n.refId}`} size="sm">
+                        {n.name}
+                      </Anchor>
+                    </li>
+                  ))}
+                </Group>
+                <Anchor component={Link} to="/billboards?status=offline" size="sm" fw={500} mt={4} display="inline-block">
+                  {t("ru", "dashboard.allOffline")}
+                </Anchor>
+              </li>
+            )}
+            {ending.map((n) => (
+              <li key={n.refId}>
                 <Text size="sm" fw={500}>
-                  {t("ru", `notifications.${n.kind}`)}
+                  {t("ru", "notifications.campaign_ending")}
                 </Text>
-                <Text size="sm" c="dimmed">
+                <Anchor component={Link} to={`/campaigns/${n.refId}`} size="sm">
                   {n.name}
-                </Text>
+                </Anchor>
               </li>
             ))}
           </Stack>
