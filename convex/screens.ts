@@ -6,7 +6,7 @@ import { city, screenStatus } from "./schema";
 import { audienceDay } from "./lib/analytics";
 import { requireActor } from "./lib/auth";
 import { fail } from "./lib/errors";
-import { hourSlots, occupancy } from "./lib/slots";
+import { campaignsByScreen, hourSlots, occupancy } from "./lib/slots";
 import { campaignStatus } from "./lib/status";
 import { addDays, datesInRange, kzNow } from "./lib/time";
 
@@ -80,6 +80,7 @@ export const list = query({
     const { today, from, to } = period();
     const days = datesInRange(from, to);
     const campaigns = await allCampaigns(ctx);
+    const index = campaignsByScreen(campaigns); // once per query, not per screen (KI-08)
     // shortcut: screens are written only by the seed (100 rows); add pagination if the network becomes real data.
     const screens = await ctx.db.query("screens").withIndex("by_code").collect();
     const rows = screens.map((s) => ({
@@ -95,8 +96,8 @@ export const list = query({
       workEndHour: s.workEndHour,
       imageKey: s.imageKey,
       hasCamera: s.hasCamera,
-      occupancyPercent: occupancy([s], campaigns, from, to).percent,
-      activeCampaigns: campaigns.filter((c) => c.screenIds.includes(s._id) && campaignStatus(c, today) === "active").length,
+      occupancyPercent: occupancy([s], campaigns, from, to, index).percent,
+      activeCampaigns: (index.get(s._id) ?? []).filter((c) => campaignStatus(c, today) === "active").length,
       audience: s.hasCamera ? days.reduce((sum, d) => sum + audienceDay(s, d)!.people, 0) : null,
     }));
     return {

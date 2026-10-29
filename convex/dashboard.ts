@@ -63,11 +63,18 @@ export const summary = query({
       .filter((c) => campaignStatus(c, today) === "active")
       .sort((a, b) => a.endDate.localeCompare(b.endDate) || a.name.localeCompare(b.name));
 
-    // shortcut: log rows of the period read in one query; fine at demo size, F-10 caps the simulated period.
-    const log = await ctx.db
-      .query("showLog")
-      .withIndex("by_date", (q) => q.gte("date", from).lte("date", to))
-      .collect();
+    // KI-04: only the period rows of campaigns on the selection (a campaign's rows lie inside its dates and screens);
+    // the whole table stays under LOG_ROW_BUDGET (showLog.simulate), so the unfiltered view fits one query too.
+    const log = (
+      await Promise.all(
+        onSel.map((c) =>
+          ctx.db
+            .query("showLog")
+            .withIndex("by_campaign", (q) => q.eq("campaignId", c._id).gte("date", from).lte("date", to))
+            .collect(),
+        ),
+      )
+    ).flat();
 
     const occ = occupancy(sel, campaigns, from, to);
     const days = datesInRange(from, to);

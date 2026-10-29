@@ -12,9 +12,15 @@ export function kzNow(nowMs: number): { date: DateStr; hour: number } {
   return { date: local.toISOString().slice(0, 10), hour: local.getUTCHours() };
 }
 
-/** Strict "YYYY-MM-DD" that is a real calendar date. */
+// Product window: no campaign, period or log date falls outside it (KI-05: year 9999 rolled over to "+010000").
+const MIN_YEAR = 2000;
+const MAX_YEAR = 2100;
+
+/** Strict "YYYY-MM-DD" that is a real calendar date in the product window (years 2000-2100). */
 export function isDate(s: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const year = Number(s.slice(0, 4));
+  if (year < MIN_YEAR || year > MAX_YEAR) return false;
   const d = new Date(`${s}T00:00:00Z`);
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
@@ -36,9 +42,7 @@ export function diffDays(a: DateStr, b: DateStr): number {
   return Math.round((toMs(b) - toMs(a)) / DAY_MS);
 }
 
-/** Every date from `from` to `to`, both included; empty when to < from. */
+/** Every date from `from` to `to`, both included; empty when to < from. Bounded by the day count, never by a string compare. */
 export function datesInRange(from: DateStr, to: DateStr): DateStr[] {
-  const out: DateStr[] = [];
-  for (let d = from; d <= to; d = addDays(d, 1)) out.push(d);
-  return out;
+  return Array.from({ length: Math.max(0, diffDays(from, to) + 1) }, (_, i) => addDays(from, i));
 }
