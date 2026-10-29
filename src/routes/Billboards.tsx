@@ -8,9 +8,10 @@ import { errorText } from "../errors";
 import { t, type StringsKey } from "../../shared/strings";
 import { DemoLabel } from "../components/DemoLabel";
 import { useGuardedQuery } from "../session";
-import { MAP_HEIGHT, SCREEN_STATUS_COLOR, THUMB_WIDTH } from "../theme";
+import { formatDate, formatNumber as num } from "../format";
+import { ADDRESS_WIDTH, MAP_HEIGHT, SCREEN_STATUS_COLOR, STATUS_COLUMN_WIDTH, THUMB_WIDTH } from "../theme";
 import { Boundary } from "./billboards/Boundary";
-import { num, workHours } from "./billboards/format";
+import { workHours } from "./billboards/format";
 
 const ScreensMap = lazy(() => import("./billboards/ScreensMap"));
 
@@ -151,7 +152,7 @@ function ScreenList({ filters }: { filters: ReturnType<typeof filtersFrom> }) {
       </Boundary>
 
       <Group justify="space-between">
-        <Text c="dimmed">{t("ru", "billboards.period", { from: data.from, to: data.to })}</Text>
+        <Text c="dimmed">{t("ru", "billboards.period", { from: formatDate(data.from), to: formatDate(data.to) })}</Text>
         <DemoLabel />
       </Group>
 
@@ -160,8 +161,8 @@ function ScreenList({ filters }: { filters: ReturnType<typeof filtersFrom> }) {
           {t("ru", "billboards.empty")}
         </Text>
       ) : (
-        <Table.ScrollContainer minWidth={960}>
-          <Table striped highlightOnHover verticalSpacing="xs">
+        // sticky header: 100 rows stay readable without paging; no scroll container, so it sticks to the page
+        <Table striped highlightOnHover verticalSpacing="xs" stickyHeader>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>{t("ru", "billboards.colImage")}</Table.Th>
@@ -185,17 +186,20 @@ function ScreenList({ filters }: { filters: ReturnType<typeof filtersFrom> }) {
                     <Anchor component={Link} to={`/billboards/${r._id}`} fw={500}>
                       {r.name}
                     </Anchor>
-                    <Text size="sm" c="dimmed">
-                      {r.code}
-                    </Text>
+                    {/* seed names start with the code; show it apart only when they do not */}
+                    {!r.name.startsWith(r.code) && (
+                      <Text size="sm" c="dimmed">
+                        {r.code}
+                      </Text>
+                    )}
                   </Table.Td>
                   <Table.Td>
                     <Text size="sm">{t("ru", `cities.${r.city}`)}</Text>
-                    <Text size="sm" c="dimmed">
+                    <Text size="sm" c="dimmed" truncate="end" maw={ADDRESS_WIDTH} title={r.address}>
                       {r.address}
                     </Text>
                   </Table.Td>
-                  <Table.Td>
+                  <Table.Td miw={STATUS_COLUMN_WIDTH} style={{ whiteSpace: "nowrap" }}>
                     <Badge color={SCREEN_STATUS_COLOR[r.status]} variant="light" tt="none">
                       {t("ru", `status.${r.status}`)}
                     </Badge>
@@ -208,8 +212,7 @@ function ScreenList({ filters }: { filters: ReturnType<typeof filtersFrom> }) {
                 </Table.Tr>
               ))}
             </Table.Tbody>
-          </Table>
-        </Table.ScrollContainer>
+        </Table>
       )}
     </Stack>
   );
