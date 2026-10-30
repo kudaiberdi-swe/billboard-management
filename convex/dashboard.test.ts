@@ -137,6 +137,7 @@ describe("[f02-dashboard] dashboard.summary", () => {
   };
   test("[f02-dashboard] screen looks card sums looks", screenLooksCardSumsLooks);
   test("[c00-predeploy-hardening] screen looks card sums looks", screenLooksCardSumsLooks);
+  test("[c01-kpi-align] screen looks card sums looks", screenLooksCardSumsLooks);
 
   const noSessionIsRefused = async () => {
     const { t } = await seeded();
@@ -148,6 +149,7 @@ describe("[f02-dashboard] dashboard.summary", () => {
   };
   test("[f02-dashboard] no session is refused", noSessionIsRefused);
   test("[c00-predeploy-hardening] no session is refused", noSessionIsRefused);
+  test("[c01-kpi-align] no session is refused", noSessionIsRefused);
 
   test("[f02-dashboard] planned and log shows are separate cards", async () => {
     const { t, sessionId } = await seeded();

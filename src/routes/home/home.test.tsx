@@ -131,6 +131,26 @@ const cardsShowTheNetworkValues = () => {
 };
 test("[f02-dashboard] cards show the network values", cardsShowTheNetworkValues);
 test("[c00-predeploy-hardening] cards show the network values", cardsShowTheNetworkValues);
+test("[c01-kpi-align] cards show the network values", cardsShowTheNetworkValues);
+
+// jsdom has no layout: this checks the Stack fills the card and pushes the value to the bottom;
+// the geometry (equal bottoms per row) is the Playwright test of the same title in e2e/kpi-align.spec.ts.
+test("[c01-kpi-align] card values line up per row", () => {
+  open();
+  const cards = screen.getAllByRole("group").filter((g) => g.hasAttribute("aria-labelledby"));
+  expect(cards).toHaveLength(8);
+  for (const g of cards) {
+    const label = document.getElementById(g.getAttribute("aria-labelledby")!)!;
+    const stack = label.parentElement!;
+    expect(stack.parentElement).toBe(g);
+    expect(stack.style.height).toBe("100%");
+    expect(stack.style.getPropertyValue("--stack-justify")).toBe("space-between");
+    expect(stack.lastElementChild!.textContent).toMatch(/\d/);
+    // labels wrap in full: no Mantine lineClamp or truncate
+    expect(label.hasAttribute("data-line-clamp")).toBe(false);
+    expect(label.hasAttribute("data-truncate")).toBe(false);
+  }
+});
 
 test("[f02-dashboard] planned and log shows are separate cards", () => {
   open();
