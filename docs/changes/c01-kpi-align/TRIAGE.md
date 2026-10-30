@@ -5,7 +5,7 @@ Status: approved 2026-10-30
 Round: c01-kpi-align
 Input: docs/client/changes/2026-10-30-kpi-align-feedback.png
 Started: 2026-10-30
-Deployed: -
+Deployed: 2026-10-30 e1ff327
 
 One row per item of the input. Facts only from the input, the specs and the code; an unclear item gets a question, never a guess.
 
