@@ -142,7 +142,9 @@ const sim = await m(api.showLog.simulate, sid, { campaignId: newId });
 check(11, "simulate creates log rows for the past part", sim.rows > 0, JSON.stringify(sim));
 const after = await q(api.campaigns.get, sid, { campaignId: newId });
 check(11, "log shows appear and do not exceed planned", after.logShows > 0 && after.logShows <= after.plannedShows, `log=${after.logShows} planned=${after.plannedShows}`);
-const pastPlan = 3 * 720 * 3; // 3 past days × 3 online screens
+// 3 past days + today's finished hours 08–20 (simulate-shows spec: today counts finished hours), × 3 screens, 60 shows/h
+const kzHour = new Date(Date.now() + 5 * 3_600_000).getUTCHours();
+const pastPlan = 3 * (3 * 720 + Math.min(12, Math.max(0, kzHour - 8)) * 60);
 check(11, "log ≤ plan of the past part only", after.logShows <= pastPlan, `log=${after.logShows} pastPlan=${pastPlan}`);
 const rep2 = await q(api.reports.campaign, sid, { campaignId: newId });
 check(11, "report of the new campaign shows the log", rep2.placement.logShows === after.logShows && rep2.placement.logShows <= rep2.placement.plannedShows, `log=${rep2.placement.logShows} planned=${rep2.placement.plannedShows} completion=${rep2.placement.completion}`);
