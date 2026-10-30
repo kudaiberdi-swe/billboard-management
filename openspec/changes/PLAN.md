@@ -19,7 +19,7 @@ Rule: a change to schema, roles, access, statuses or shared signatures needs a n
 | f08-audience-analytics | 2 | 4.8 | routine | echo-sdlc:routine-builder | opus | one read query over the locked audience generator plus a filtered view with cards and a chart | base-contract | archived | change/f08-audience-analytics | .claude/worktrees/agent-ad867f3bfc0611542 | merged into the last wave (script wave 2 had only this change) ; tsc ok, vitest 288/288, checks PASS, scenarios 13/13 |
 | f09-reports | 2 | 4.9 | routine | echo-sdlc:routine-builder | opus | read-only report from locked lib math and the f02 contacts helper plus a print stylesheet | base-contract, f02-dashboard, f05-campaign-list | archived | change/f09-reports | .claude/worktrees/agent-a0d7c76950ef8cc76 | needs f02 and f05 merged (wave 1) ; tsc ok, vitest 288/288, checks PASS, scenarios 21/21 |
 | f10-simulate-shows | 2 | 4.10 | routine | echo-sdlc:routine-builder | opus | one mutation reusing the locked show-log helper plus one button on the f05 card | base-contract, f05-campaign-list | archived | change/f10-simulate-shows | .claude/worktrees/agent-ab78e5c7ce3b924e9 | also batches `demo.reset` showLog deletes (implementation only, no signature change; 31-day cap is per campaign) ; tsc ok, vitest 282/282, checks PASS, scenarios 13/13; wave-1 follow-ups A/B/C done |
-| c01-kpi-align | 3 | c01 #1 | routine | echo-sdlc:routine-builder | opus | routine one-line layout fix in src/routes/home/Cards.tsx plus a Playwright e2e test, no backend | base-contract | planned | - | - | |
+| c01-kpi-align | 3 | c01 #1 | routine | echo-sdlc:routine-builder | opus | routine one-line layout fix in src/routes/home/Cards.tsx plus a Playwright e2e test, no backend | base-contract | review | change/c01-kpi-align | .claude/worktrees/agent-a776b62ccc7370c11 | tsc pass; vitest 415/415; checks all PASS; scenarios --unit PASS; e2e not run (no local stack) |
 
 ## Waves
 
@@ -57,6 +57,8 @@ Round: c01-kpi-align
 Changes: c01-kpi-align
 E2E: none (`checkpoint.mjs --waves 1 --first 3` printed `E2E_MID: none`; the round e2e is the end E2E)
 Wave note: a 1-change round is one wave (single S item).
+Result: PASS, QA: fast, 2026-10-30, merge 3701b01 (round 1: e2e precondition too strict, test fixed; round 2 accepted on builder evidence, test-only diff, no full QA rerun)
+Follow-ups: [nit] src/routes/home/home.test.tsx:148 asserts Mantine internals; [low] e2e/kpi-align.spec.ts checked only at 1280x800 chromium; [info] docs/PERSONAL-DATA.md S16 has unanswered questions (check-security warn).
 
 ## Dependency graph
 ```mermaid
