@@ -1,4 +1,4 @@
-Status: draft
+Status: approved 2026-10-30 (auto)
 
 # Round e2e: c01-kpi-align
 
