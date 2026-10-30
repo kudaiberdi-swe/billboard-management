@@ -141,6 +141,8 @@ One row per change round in `docs/changes/LOG.md`.
 
 <!-- gen:changes -->
 _No change round closed yet._
+
+Open: `c01-kpi-align` (next step: triage).
 <!-- /gen:changes -->
 
 ## Notes

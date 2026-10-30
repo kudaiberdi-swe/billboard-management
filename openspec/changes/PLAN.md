@@ -1,4 +1,4 @@
-Status: approved 2026-10-28 (auto)
+Status: approved 2026-10-30 (auto)
 
 # Build plan
 
@@ -19,6 +19,7 @@ Rule: a change to schema, roles, access, statuses or shared signatures needs a n
 | f08-audience-analytics | 2 | 4.8 | routine | echo-sdlc:routine-builder | opus | one read query over the locked audience generator plus a filtered view with cards and a chart | base-contract | archived | change/f08-audience-analytics | .claude/worktrees/agent-ad867f3bfc0611542 | merged into the last wave (script wave 2 had only this change) ; tsc ok, vitest 288/288, checks PASS, scenarios 13/13 |
 | f09-reports | 2 | 4.9 | routine | echo-sdlc:routine-builder | opus | read-only report from locked lib math and the f02 contacts helper plus a print stylesheet | base-contract, f02-dashboard, f05-campaign-list | archived | change/f09-reports | .claude/worktrees/agent-a0d7c76950ef8cc76 | needs f02 and f05 merged (wave 1) ; tsc ok, vitest 288/288, checks PASS, scenarios 21/21 |
 | f10-simulate-shows | 2 | 4.10 | routine | echo-sdlc:routine-builder | opus | one mutation reusing the locked show-log helper plus one button on the f05 card | base-contract, f05-campaign-list | archived | change/f10-simulate-shows | .claude/worktrees/agent-ab78e5c7ce3b924e9 | also batches `demo.reset` showLog deletes (implementation only, no signature change; 31-day cap is per campaign) ; tsc ok, vitest 282/282, checks PASS, scenarios 13/13; wave-1 follow-ups A/B/C done |
+| c01-kpi-align | 3 | c01 #1 | routine | echo-sdlc:routine-builder | opus | routine one-line layout fix in src/routes/home/Cards.tsx plus a Playwright e2e test, no backend | base-contract | planned | - | - | |
 
 ## Waves
 
@@ -51,6 +52,12 @@ Follow-ups:
 - [nit] stale shortcut comments dashboard.ts:66 and seed.ts:130; inline chart colours in ReportView.tsx:129-130 (add REPORT_SERIES_COLOR); confusing campaignStatus import alias in reports.ts:8,10; uploadUrlGlobal capacity 10 blocks uploads after 10 rehearsal uploads.
 Wave note: the script gave 3 waves (5 / 1 / 2). f08 depends only on base-contract and would sit alone in wave 2, so it joins the last wave (3 changes): f09 needs f02 and f05, f10 needs f05, all in wave 1. `checkpoint.mjs --waves 2` prints `E2E_MID: none`.
 
+### Wave 3
+Round: c01-kpi-align
+Changes: c01-kpi-align
+E2E: none (`checkpoint.mjs --waves 1 --first 3` printed `E2E_MID: none`; the round e2e is the end E2E)
+Wave note: a 1-change round is one wave (single S item).
+
 ## Dependency graph
 ```mermaid
 flowchart LR
@@ -65,6 +72,7 @@ flowchart LR
   f02-dashboard --> f09-reports
   f05-campaign-list --> f09-reports
   f05-campaign-list --> f10-simulate-shows
+  base-contract --> c01-kpi-align
 ```
 
 ## Open items
