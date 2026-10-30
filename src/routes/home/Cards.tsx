@@ -46,7 +46,7 @@ function Card({ label, value }: { label: string; value: ReactNode }) {
   const id = useId();
   return (
     <Paper withBorder p="md" role="group" aria-labelledby={id}>
-      <Stack gap="xs" align="flex-start">
+      <Stack gap="xs" align="flex-start" h="100%" justify="space-between">
         <Text id={id} size="sm" c="dimmed">
           {label}
         </Text>
