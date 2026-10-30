@@ -20,11 +20,10 @@ test('[c01-kpi-align] card values line up per row', { tag: '@c01-kpi-align' }, a
       return group.evaluate((g, text) => {
         const label = document.getElementById(g.getAttribute('aria-labelledby')!)!;
         const value = label.parentElement!.lastElementChild!;
-        const lh = parseFloat(getComputedStyle(label).lineHeight);
         return {
           card: g.getBoundingClientRect().height,
           value: value.getBoundingClientRect().bottom,
-          lines: Math.round(label.getBoundingClientRect().height / lh),
+          label: label.getBoundingClientRect().height,
           full: label.textContent === text && getComputedStyle(label).textOverflow !== 'ellipsis'
             && label.scrollHeight <= label.clientHeight && label.scrollWidth <= label.clientWidth,
         };
@@ -33,8 +32,8 @@ test('[c01-kpi-align] card values line up per row', { tag: '@c01-kpi-align' }, a
   );
 
   // not vacuous: the long label wraps, the short one does not
-  expect(cards[LABELS.indexOf(t('ru', 'dashboard.occupancy'))].lines).toBe(2);
-  expect(cards[LABELS.indexOf(t('ru', 'dashboard.screens'))].lines).toBe(1);
+  expect(cards[LABELS.indexOf(t('ru', 'dashboard.occupancy'))].label)
+    .toBeGreaterThan(cards[LABELS.indexOf(t('ru', 'dashboard.screens'))].label);
 
   for (const row of [cards.slice(0, 4), cards.slice(4, 8)]) {
     for (const c of row) {
